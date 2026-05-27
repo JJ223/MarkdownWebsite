@@ -179,7 +179,13 @@ export default function App() {
   }, [])
 
   return (
-    <div className="layout">
+    <>
+      <div className="bg-orbs" aria-hidden="true">
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+      </div>
+      <div className="layout">
       <nav className="sidebar">
         <div className="sidebar-brand">João Jorge</div>
         <ul>
@@ -194,6 +200,7 @@ export default function App() {
           <Route path="/*" element={<SlugPage />} />
         </Routes>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
