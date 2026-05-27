@@ -1,6 +1,6 @@
-# 👋 Hi, I'm João Jorge
+# Hi, I'm João Jorge
 
-A software engineer looking for a new challenge in Europe.
+A **software engineer** looking for a new challenge in Europe.
 
 I have experience delivering full-stack solutions for government tax systems and autonomous vehicle software. I'm currently seeking a role in **drone, automotive, or embedded systems** where software has direct operational impact.
 

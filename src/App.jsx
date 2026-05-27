@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate, useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
 import './App.css'
 
 function MarkdownPage({ slug }) {
@@ -22,11 +23,12 @@ function MarkdownPage({ slug }) {
   }, [slug])
 
   const components = {
-    a({ href, children }) {
+    a({ href, children, node, ...props }) {
       if (href && /\.md$/.test(href) && !/^https?:\/\//.test(href)) {
         const target = href.replace(/^\.\//, '').replace(/\.md$/, '')
         return (
           <a
+            {...props}
             href={`#/${target}`}
             onClick={e => { e.preventDefault(); navigate(target === 'index' ? '/' : `/${target}`) }}
           >
@@ -34,7 +36,7 @@ function MarkdownPage({ slug }) {
           </a>
         )
       }
-      return <a href={href} target="_blank" rel="noreferrer">{children}</a>
+      return <a {...props} href={href} target="_blank" rel="noreferrer">{children}</a>
     },
   }
 
@@ -54,7 +56,7 @@ function MarkdownPage({ slug }) {
 
   return (
     <article className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components}>
         {content}
       </ReactMarkdown>
     </article>

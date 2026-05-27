@@ -9,7 +9,23 @@
       { "slug": "skills",     "title": "Skills" }
     ]
   },
-  { "slug": "projects",   "title": "Projects" },
+  {
+    "slug": "projects",
+    "title": "Projects",
+    "children": [
+      { "slug": "work-projects", "title": "Work Projects" },
+      { "slug": "my-projects",   "title": "My Projects" }
+    ]
+  },
+  {
+    "slug": "blog",
+    "title": "Blog",
+    "children": [
+      { "slug": "blog-hello-world",  "title": "Hello World" },
+      { "slug": "blog-working-on",   "title": "What I'm working on" },
+      { "slug": "blog-gmv-lessons",  "title": "Lessons from GMV" }
+    ]
+  },
   { "slug": "events",     "title": "Events" },
   { "slug": "contact",    "title": "Contact" }
 ]
