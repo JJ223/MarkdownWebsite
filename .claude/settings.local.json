@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object FullName)",
+      "Bash(npm run *)",
+      "Bash(curl -sf http://localhost:5173)",
+      "Bash(chromium-cli *)",
+      "Bash(curl -sf http://localhost:5173/docs/manifest.json)",
+      "Bash(curl -sf http://localhost:5173/docs/index.md)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\Projects\\\\CV\" -Recurse -File)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "PowerShell(Remove-Item *)",
+      "Bash(curl -sf http://localhost:5173/docs/home.md)",
+      "Bash(curl -o /dev/null -w \"%{http_code}\" http://localhost:5173/docs/home.md)",
+      "PowerShell(Get-Process *)",
+      "Bash(curl -o /dev/null -w \"%{http_code}\" -sf http://localhost:5173/docs/home.md)",
+      "Bash(curl -o /dev/null -w \"%{http_code}\" -sf http://localhost:5173/docs/index.md)"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+[
+  { "slug": "index",      "title": "Home" },
+  { "slug": "about",      "title": "About" },
+  { "slug": "experience", "title": "Experience" },
+  { "slug": "projects",   "title": "Projects" },
+  { "slug": "education",  "title": "Education" },
+  { "slug": "skills",     "title": "Skills" },
+  { "slug": "events",     "title": "Events" },
+  { "slug": "contact",    "title": "Contact" }
+]
