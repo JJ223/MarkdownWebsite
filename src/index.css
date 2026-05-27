@@ -10,34 +10,34 @@
   --bg: #0f0a1a;
 
   /* ── Sidebar ──────────────── */
-  --sidebar-bg:         #150d27;
-  --sidebar-border:     #7c3aed;
-  --sidebar-brand:      #a855f7;
-  --sidebar-hover-bg:   rgba(139, 92, 246, 0.15);
-  --sidebar-active-bg:  rgba(139, 92, 246, 0.3);
+  --sidebar-bg:         #110c1e;
+  --sidebar-border:     #2d1b4e;
+  --sidebar-brand:      #6b4a90;
+  --sidebar-hover-bg:   rgba(70, 40, 110, 0.25);
+  --sidebar-active-bg:  rgba(70, 40, 110, 0.45);
 
   /* ── Text ─────────────────── */
-  --text:    #c4b5d9;
-  --text-h:  #f3e8ff;
-  --muted:   #7c6d9a;
+  --text:    #a89cc0;
+  --text-h:  #d4c8e8;
+  --muted:   #5e5278;
 
   /* ── Accent & links ───────── */
-  --accent:        #8b5cf6;
-  --accent-hover:  #a855f7;
-  --link:          #c084fc;
+  --accent:        #533a7a;
+  --accent-hover:  #6b4a90;
+  --link:          #8b6ab8;
 
   /* ── Code blocks ──────────── */
-  --code-bg:     #1e1233;
-  --code-border: #3b1f6e;
+  --code-bg:     #160f28;
+  --code-border: #2a1850;
   --pre-bg:      #0a0614;
-  --pre-text:    #e2d9f3;
+  --pre-text:    #c8bedd;
 
   /* ── Misc chrome ──────────── */
-  --blockquote-border: #5b21b6;
-  --table-border:      #3b1f6e;
-  --table-head-bg:     #1e1233;
-  --active-bg:         rgba(139, 92, 246, 0.15);
-  --active-text:       #c084fc;
+  --blockquote-border: #2d1b4e;
+  --table-border:      #2a1850;
+  --table-head-bg:     #160f28;
+  --active-bg:         rgba(70, 40, 110, 0.25);
+  --active-text:       #8b6ab8;
 }
 
 

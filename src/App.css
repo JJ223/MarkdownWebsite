@@ -14,7 +14,7 @@
   width: var(--sidebar-w);
   flex-shrink: 0;
   background: var(--sidebar-bg);
-  box-shadow: inset -4px 0 12px rgba(124, 58, 237, 0.2);
+  box-shadow: inset -4px 0 12px rgba(70, 40, 110, 0.35);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
