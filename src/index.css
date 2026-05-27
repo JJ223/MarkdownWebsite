@@ -7,37 +7,37 @@
   --sidebar-w: 220px;
 
   /* ── Page background ──────── */
-  --bg: #feeed5;
+  --bg: #0f0a1a;
 
   /* ── Sidebar ──────────────── */
-  --sidebar-bg:         #feeed5;   /* sidebar fill — matches page bg */
-  --sidebar-border:     #ff702e;   /* sidebar right border */
-  --sidebar-brand:      #ff702e;   /* "Docs" label */
-  --sidebar-hover-bg:   rgba(248, 220, 61, 0.4);  /* row hover */
-  --sidebar-active-bg:  #f8dc3d;   /* active page highlight */
+  --sidebar-bg:         #150d27;
+  --sidebar-border:     #7c3aed;
+  --sidebar-brand:      #a855f7;
+  --sidebar-hover-bg:   rgba(139, 92, 246, 0.15);
+  --sidebar-active-bg:  rgba(139, 92, 246, 0.3);
 
   /* ── Text ─────────────────── */
-  --text:    #374151;
-  --text-h:  #111827;
-  --muted:   #6b7280;
+  --text:    #c4b5d9;
+  --text-h:  #f3e8ff;
+  --muted:   #7c6d9a;
 
   /* ── Accent & links ───────── */
-  --accent:        #f8dc3d;   /* yellow — used for highlights */
-  --accent-hover:  #e85a18;   /* orange — hover state */
-  --link:          #ff702e;   /* inline link colour */
+  --accent:        #8b5cf6;
+  --accent-hover:  #a855f7;
+  --link:          #c084fc;
 
   /* ── Code blocks ──────────── */
-  --code-bg:     #fdf5e0;
-  --code-border: #f0c88a;
-  --pre-bg:      #1e1e2e;
-  --pre-text:    #cdd6f4;
+  --code-bg:     #1e1233;
+  --code-border: #3b1f6e;
+  --pre-bg:      #0a0614;
+  --pre-text:    #e2d9f3;
 
   /* ── Misc chrome ──────────── */
-  --blockquote-border: #f0c88a;
-  --table-border:      #f0c88a;
-  --table-head-bg:     #fde5c0;
-  --active-bg:         rgba(248, 220, 61, 0.25);
-  --active-text:       #9a7200;
+  --blockquote-border: #5b21b6;
+  --table-border:      #3b1f6e;
+  --table-head-bg:     #1e1233;
+  --active-bg:         rgba(139, 92, 246, 0.15);
+  --active-text:       #c084fc;
 }
 
 
