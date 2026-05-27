@@ -14,7 +14,7 @@
   width: var(--sidebar-w);
   flex-shrink: 0;
   background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
+  border-right: 4px solid var(--sidebar-border);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -25,7 +25,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--sidebar-brand);
   padding: 24px 20px 12px;
 }
 
@@ -48,11 +48,11 @@
 }
 
 .sidebar-row:hover {
-  background: var(--active-bg);
+  background: var(--sidebar-hover-bg);
 }
 
 .sidebar-row:has(a.active) {
-  background: var(--active-bg);
+  background: var(--sidebar-active-bg);
 }
 
 .sidebar-toggle {
@@ -101,7 +101,7 @@
 }
 
 .sidebar a.active {
-  color: var(--active-text);
+  color: var(--text-h);
   font-weight: 600;
 }
 

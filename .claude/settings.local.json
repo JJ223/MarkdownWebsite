@@ -15,7 +15,8 @@
       "Bash(curl -o /dev/null -w \"%{http_code}\" http://localhost:5173/docs/home.md)",
       "PowerShell(Get-Process *)",
       "Bash(curl -o /dev/null -w \"%{http_code}\" -sf http://localhost:5173/docs/home.md)",
-      "Bash(curl -o /dev/null -w \"%{http_code}\" -sf http://localhost:5173/docs/index.md)"
+      "Bash(curl -o /dev/null -w \"%{http_code}\" -sf http://localhost:5173/docs/index.md)",
+      "Bash(curl -sf http://localhost:5173/src/index.css)"
     ]
   }
 }

@@ -3,49 +3,43 @@
 }
 
 :root {
+  /* ── Layout ───────────────── */
   --sidebar-w: 220px;
-  --bg: #ffffff;
-  --sidebar-bg: #f8f8f8;
-  --sidebar-border: #e4e4e7;
-  --text: #374151;
-  --text-h: #111827;
-  --muted: #6b7280;
-  --accent: #4f46e5;
-  --accent-hover: #4338ca;
-  --link: #4f46e5;
-  --code-bg: #f3f4f6;
-  --code-border: #e5e7eb;
-  --pre-bg: #1e1e2e;
-  --pre-text: #cdd6f4;
-  --blockquote-border: #d1d5db;
-  --table-border: #e5e7eb;
-  --table-head-bg: #f9fafb;
-  --active-bg: #ede9fe;
-  --active-text: #4f46e5;
+
+  /* ── Page background ──────── */
+  --bg: #feeed5;
+
+  /* ── Sidebar ──────────────── */
+  --sidebar-bg:         #feeed5;   /* sidebar fill — matches page bg */
+  --sidebar-border:     #ff702e;   /* sidebar right border */
+  --sidebar-brand:      #ff702e;   /* "Docs" label */
+  --sidebar-hover-bg:   rgba(248, 220, 61, 0.4);  /* row hover */
+  --sidebar-active-bg:  #f8dc3d;   /* active page highlight */
+
+  /* ── Text ─────────────────── */
+  --text:    #374151;
+  --text-h:  #111827;
+  --muted:   #6b7280;
+
+  /* ── Accent & links ───────── */
+  --accent:        #f8dc3d;   /* yellow — used for highlights */
+  --accent-hover:  #e85a18;   /* orange — hover state */
+  --link:          #ff702e;   /* inline link colour */
+
+  /* ── Code blocks ──────────── */
+  --code-bg:     #fdf5e0;
+  --code-border: #f0c88a;
+  --pre-bg:      #1e1e2e;
+  --pre-text:    #cdd6f4;
+
+  /* ── Misc chrome ──────────── */
+  --blockquote-border: #f0c88a;
+  --table-border:      #f0c88a;
+  --table-head-bg:     #fde5c0;
+  --active-bg:         rgba(248, 220, 61, 0.25);
+  --active-text:       #9a7200;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0f0f14;
-    --sidebar-bg: #13131a;
-    --sidebar-border: #27272f;
-    --text: #c9d1d9;
-    --text-h: #f0f6fc;
-    --muted: #8b949e;
-    --accent: #818cf8;
-    --accent-hover: #a5b4fc;
-    --link: #818cf8;
-    --code-bg: #1c1c27;
-    --code-border: #30303e;
-    --pre-bg: #161620;
-    --pre-text: #cdd6f4;
-    --blockquote-border: #30363d;
-    --table-border: #30363d;
-    --table-head-bg: #1c1c27;
-    --active-bg: #1e1e3a;
-    --active-text: #a5b4fc;
-  }
-}
 
 html, body {
   margin: 0;
