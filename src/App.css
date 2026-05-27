@@ -32,30 +32,75 @@
 .sidebar ul {
   list-style: none;
   margin: 0;
-  padding: 0 8px 24px;
+  padding: 0 4px 24px;
 }
 
-.sidebar ul li {
-  margin: 2px 0;
+.sidebar ul ul {
+  padding: 0;
+}
+
+.sidebar-row {
+  display: flex;
+  align-items: center;
+  margin: 1px 0;
+  border-radius: 6px;
+  padding-left: calc(4px + var(--depth, 0) * 16px);
+}
+
+.sidebar-row:hover {
+  background: var(--active-bg);
+}
+
+.sidebar-row:has(a.active) {
+  background: var(--active-bg);
+}
+
+.sidebar-toggle {
+  flex-shrink: 0;
+  width: 20px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--muted);
+  border-radius: 3px;
+}
+
+.sidebar-toggle:hover {
+  color: var(--text-h);
+}
+
+.sidebar-toggle svg {
+  width: 10px;
+  height: 10px;
+  transition: transform 0.15s;
+}
+
+.sidebar-toggle.open svg {
+  transform: rotate(90deg);
+}
+
+.sidebar-toggle.leaf {
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .sidebar a {
-  display: block;
-  padding: 7px 12px;
-  border-radius: 6px;
+  flex: 1;
+  padding: 5px 8px 5px 2px;
   font-size: 14px;
   color: var(--text);
   text-decoration: none;
-  transition: background 0.15s, color 0.15s;
-}
-
-.sidebar a:hover {
-  background: var(--active-bg);
-  color: var(--active-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar a.active {
-  background: var(--active-bg);
   color: var(--active-text);
   font-weight: 600;
 }

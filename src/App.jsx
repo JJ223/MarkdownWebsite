@@ -61,6 +61,41 @@ function MarkdownPage({ slug }) {
   )
 }
 
+function SidebarItem({ page, depth = 0 }) {
+  const [open, setOpen] = useState(true)
+  const hasChildren = page.children?.length > 0
+
+  return (
+    <li>
+      <div className="sidebar-row" style={{ '--depth': depth }}>
+        <button
+          className={`sidebar-toggle${open ? ' open' : ''}${hasChildren ? '' : ' leaf'}`}
+          onClick={() => setOpen(o => !o)}
+          tabIndex={hasChildren ? 0 : -1}
+          aria-label={open ? 'Collapse' : 'Expand'}
+        >
+          <svg viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 2l4 3-4 3" />
+          </svg>
+        </button>
+        <NavLink
+          to={page.slug === 'index' ? '/' : `/${page.slug}`}
+          end={page.slug === 'index'}
+        >
+          {page.title}
+        </NavLink>
+      </div>
+      {hasChildren && open && (
+        <ul>
+          {page.children.map(child => (
+            <SidebarItem key={child.slug} page={child} depth={depth + 1} />
+          ))}
+        </ul>
+      )}
+    </li>
+  )
+}
+
 function SlugPage() {
   const { slug } = useParams()
   return <MarkdownPage slug={slug} />
@@ -82,14 +117,7 @@ export default function App() {
         <div className="sidebar-brand">Docs</div>
         <ul>
           {pages.map(p => (
-            <li key={p.slug}>
-              <NavLink
-                to={p.slug === 'index' ? '/' : `/${p.slug}`}
-                end={p.slug === 'index'}
-              >
-                {p.title}
-              </NavLink>
-            </li>
+            <SidebarItem key={p.slug} page={p} depth={0} />
           ))}
         </ul>
       </nav>
