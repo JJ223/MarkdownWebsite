@@ -134,6 +134,14 @@
 
 .markdown-body h1 { font-size: 2rem; margin-top: 0; }
 .markdown-body h2 { font-size: 1.5rem; border-bottom: 1px solid var(--sidebar-border); padding-bottom: 0.3em; }
+
+.job-summary {
+  font-size: 1.05em;
+  color: #ddd0f0;
+  font-weight: 500;
+  margin: 0.75em 0 1em;
+  line-height: 1.55;
+}
 .markdown-body h3 { font-size: 1.2rem; }
 
 .markdown-body p {
@@ -309,6 +317,24 @@
   border-radius: 4px;
 }
 
+.stack-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stack-tag {
+  background: rgba(83, 58, 122, 0.35);
+  color: #c4aee8;
+  border: 1px solid rgba(107, 74, 144, 0.55);
+  font-size: 0.75em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
 /* ── Status states ──────────────────────────────────── */
 
 .loading {
@@ -330,6 +356,73 @@
 .not-found p {
   color: var(--muted);
   margin: 6px 0;
+}
+
+/* ── Skill grid ─────────────────────────────────────── */
+
+.skill-section {
+  margin-bottom: 1.75em;
+}
+
+.skill-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--link);
+  border-bottom: 1px solid var(--sidebar-border);
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 16px;
+}
+
+.skill-item {
+  font-size: 0.875em;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+}
+
+.skill-item::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.skill-badge {
+  font-size: 0.75em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.skill-badge.pro {
+  background: rgba(83, 58, 122, 0.4);
+  color: #c4aee8;
+  border: 1px solid rgba(107, 74, 144, 0.55);
+}
+
+.skill-badge.mid {
+  background: rgba(60, 38, 100, 0.35);
+  color: #a88ec8;
+  border: 1px solid rgba(90, 60, 140, 0.45);
+}
+
+.skill-badge.fam {
+  background: rgba(45, 27, 78, 0.35);
+  color: #8a74a8;
+  border: 1px solid rgba(70, 45, 110, 0.4);
 }
 
 /* ── Background animation ───────────────────────────── */

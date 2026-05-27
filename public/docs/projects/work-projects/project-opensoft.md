@@ -10,10 +10,7 @@ highlight: true
 # National Tax Filing Platform
 **Opensoft** · _November 2024 – November 2025_
 
----
-
 ## Overview
-
 Core contributor to multiple Portuguese government tax platforms, including the primary national online tax filing system serving millions of citizens.
 
 ## Highlights

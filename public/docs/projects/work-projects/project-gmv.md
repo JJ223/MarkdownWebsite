@@ -10,10 +10,7 @@ highlight: true
 # Autonomous Multi-Vehicle Mission Planner
 **GMV — Master's Thesis** · _September 2023 – October 2024_
 
----
-
 ## Overview
-
 Designed and built mission planning software for unmanned vehicles (USV, UAV, UGV) operating across multiple environments along Portugal's coastline. The system generates coordinated multi-vehicle mission plans under real operational constraints.
 
 ## Highlights

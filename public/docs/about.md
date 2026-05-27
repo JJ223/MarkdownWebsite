@@ -16,8 +16,8 @@ If you're working on:
 - Embedded or systems-level software
 - High-reliability distributed backends
 
-…I'd love to hear from you.
+…I'd [love to hear from you](./contact.md).
 
 ---
 
-[Home](./index.md) · [Getting Started](./getting-started.md)
+[Home](./index.md)

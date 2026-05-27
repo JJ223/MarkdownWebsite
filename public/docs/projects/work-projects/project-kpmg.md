@@ -9,10 +9,7 @@ org: KPMG — Bachelor Internship
 # Client Risk AI Prototype
 **KPMG — Bachelor Internship** · _April 2022 – August 2022_
 
----
-
 ## Overview
-
 Proof-of-concept system that assessed client risk by applying sentiment analysis to real-time news articles, giving advisors a fast signal on emerging client exposure.
 
 ## Highlights
