@@ -14,7 +14,7 @@
   width: var(--sidebar-w);
   flex-shrink: 0;
   background: var(--sidebar-bg);
-  border-right: 1px solid var(--sidebar-border);
+  box-shadow: inset -4px 0 12px rgba(70, 40, 110, 0.35);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -25,7 +25,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--sidebar-brand);
   padding: 24px 20px 12px;
 }
 
@@ -48,11 +48,11 @@
 }
 
 .sidebar-row:hover {
-  background: var(--active-bg);
+  background: var(--sidebar-hover-bg);
 }
 
 .sidebar-row:has(a.active) {
-  background: var(--active-bg);
+  background: var(--sidebar-active-bg);
 }
 
 .sidebar-toggle {
@@ -101,7 +101,7 @@
 }
 
 .sidebar a.active {
-  color: var(--active-text);
+  color: var(--text-h);
   font-weight: 600;
 }
 
@@ -117,6 +117,8 @@
 
 .markdown-body {
   max-width: 760px;
+  color: #c8bedd;
+  margin: 0 auto;
 }
 
 .markdown-body h1,
@@ -132,6 +134,14 @@
 
 .markdown-body h1 { font-size: 2rem; margin-top: 0; }
 .markdown-body h2 { font-size: 1.5rem; border-bottom: 1px solid var(--sidebar-border); padding-bottom: 0.3em; }
+
+.job-summary {
+  font-size: 1.05em;
+  color: #ddd0f0;
+  font-weight: 500;
+  margin: 0.75em 0 1em;
+  line-height: 1.55;
+}
 .markdown-body h3 { font-size: 1.2rem; }
 
 .markdown-body p {
@@ -220,6 +230,111 @@
   background: color-mix(in srgb, var(--table-head-bg) 50%, transparent);
 }
 
+/* ── Project cards ──────────────────────────────────── */
+
+.project-card {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  background: var(--code-bg);
+  border: 1px solid var(--table-border);
+  border-radius: 10px;
+  padding: 18px;
+  margin: 1.5em 0;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  cursor: pointer;
+}
+
+.project-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 4px 20px rgba(70, 40, 110, 0.3);
+  transform: translateY(-2px);
+}
+
+.project-card-img {
+  width: 240px;
+  height: 150px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  background: var(--table-border);
+  border: 1px dashed var(--accent);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--muted);
+  overflow: hidden;
+}
+
+.project-card-img.has-image {
+  border: none;
+  background: none;
+}
+
+.project-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project-card-img span { font-size: 22px; }
+.project-card-img small { font-size: 11px; }
+
+.project-card-body { flex: 1; }
+
+.project-card-body h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--text-h);
+}
+
+.project-meta {
+  font-size: 0.8em;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.project-card-body p {
+  font-size: 0.88em;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.project-tag {
+  background: var(--table-border);
+  color: var(--muted);
+  font-size: 0.75em;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.stack-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.stack-tag {
+  background: rgba(83, 58, 122, 0.35);
+  color: #c4aee8;
+  border: 1px solid rgba(107, 74, 144, 0.55);
+  font-size: 0.75em;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
 /* ── Status states ──────────────────────────────────── */
 
 .loading {
@@ -241,6 +356,134 @@
 .not-found p {
   color: var(--muted);
   margin: 6px 0;
+}
+
+/* ── Skill grid ─────────────────────────────────────── */
+
+.skill-section {
+  margin-bottom: 1.75em;
+}
+
+.skill-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--link);
+  border-bottom: 1px solid var(--sidebar-border);
+  padding-bottom: 5px;
+  margin-bottom: 10px;
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 16px;
+}
+
+.skill-item {
+  font-size: 0.875em;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 3px 0;
+}
+
+.skill-item::before {
+  content: '';
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.skill-badge {
+  font-size: 0.75em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.skill-badge.pro {
+  background: rgba(83, 58, 122, 0.4);
+  color: #c4aee8;
+  border: 1px solid rgba(107, 74, 144, 0.55);
+}
+
+.skill-badge.mid {
+  background: rgba(60, 38, 100, 0.35);
+  color: #a88ec8;
+  border: 1px solid rgba(90, 60, 140, 0.45);
+}
+
+.skill-badge.fam {
+  background: rgba(45, 27, 78, 0.35);
+  color: #8a74a8;
+  border: 1px solid rgba(70, 45, 110, 0.4);
+}
+
+/* ── Background animation ───────────────────────────── */
+
+.bg-orbs {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.orb-1 {
+  width: 700px;
+  height: 700px;
+  top: -100px;
+  left: 0%;
+  background: radial-gradient(circle, rgba(90, 45, 160, 0.45) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: orb-drift-1 32s ease-in-out infinite;
+}
+
+.orb-2 {
+  width: 600px;
+  height: 600px;
+  bottom: -80px;
+  right: 5%;
+  background: radial-gradient(circle, rgba(55, 25, 120, 0.4) 0%, transparent 70%);
+  filter: blur(70px);
+  animation: orb-drift-2 24s ease-in-out infinite;
+}
+
+.orb-3 {
+  width: 420px;
+  height: 420px;
+  top: 35%;
+  left: 40%;
+  background: radial-gradient(circle, rgba(110, 60, 170, 0.3) 0%, transparent 70%);
+  filter: blur(60px);
+  animation: orb-drift-3 40s ease-in-out infinite;
+}
+
+@keyframes orb-drift-1 {
+  0%, 100% { transform: translate(0, 0)        scale(1);    }
+  30%       { transform: translate(40px, -50px) scale(1.06); }
+  65%       { transform: translate(-30px, 30px) scale(0.96); }
+}
+
+@keyframes orb-drift-2 {
+  0%, 100% { transform: translate(0, 0)        scale(1);    }
+  40%       { transform: translate(-45px, 35px) scale(1.04); }
+  72%       { transform: translate(30px, -40px) scale(0.97); }
+}
+
+@keyframes orb-drift-3 {
+  0%, 100% { transform: translate(0, 0)        scale(1);    }
+  50%       { transform: translate(25px, -25px) scale(1.05); }
 }
 
 /* ── Responsive ─────────────────────────────────────── */

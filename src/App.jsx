@@ -2,7 +2,58 @@ import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate, useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkFrontmatter from 'remark-frontmatter'
+import rehypeRaw from 'rehype-raw'
 import './App.css'
+
+function CardIndex({ src, filter }) {
+  const [entries, setEntries] = useState(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    fetch(`/docs/${src}`)
+      .then(r => r.json())
+      .then(setEntries)
+      .catch(() => setEntries([]))
+  }, [src])
+
+  if (!entries) return <div className="loading">Loading…</div>
+
+  const isBlog = src.includes('blog')
+  const displayed = filter === 'highlight' ? entries.filter(e => e.highlight) : entries
+
+  return (
+    <div>
+      {displayed.map(entry => (
+        <a
+          key={entry.slug}
+          className="project-card"
+          href={`#/${entry.slug}`}
+          onClick={e => { e.preventDefault(); navigate(`/${entry.slug}`) }}
+        >
+          <div className={`project-card-img${entry.image ? ' has-image' : ''}`}>
+            {entry.image
+              ? <img src={entry.image} alt={entry.title} />
+              : <><span>{isBlog ? '📝' : '📷'}</span><small>{entry.date || 'no date'}</small></>
+            }
+          </div>
+          <div className="project-card-body">
+            <h3>{entry.title}</h3>
+            {(entry.org || entry.date) && (
+              <div className="project-meta">{[entry.org, entry.date].filter(Boolean).join(' · ')}</div>
+            )}
+            {entry.description && <p>{entry.description}</p>}
+            {entry.tags?.length > 0 && (
+              <div className="project-tags">
+                {entry.tags.map(tag => <span key={tag} className="project-tag">{tag}</span>)}
+              </div>
+            )}
+          </div>
+        </a>
+      ))}
+    </div>
+  )
+}
 
 function MarkdownPage({ slug }) {
   const [content, setContent] = useState(null)
@@ -22,11 +73,12 @@ function MarkdownPage({ slug }) {
   }, [slug])
 
   const components = {
-    a({ href, children }) {
-      if (href && /\.md$/.test(href)) {
+    a({ href, children, node, ...props }) {
+      if (href && /\.md$/.test(href) && !/^https?:\/\//.test(href)) {
         const target = href.replace(/^\.\//, '').replace(/\.md$/, '')
         return (
           <a
+            {...props}
             href={`#/${target}`}
             onClick={e => { e.preventDefault(); navigate(target === 'index' ? '/' : `/${target}`) }}
           >
@@ -34,7 +86,22 @@ function MarkdownPage({ slug }) {
           </a>
         )
       }
-      return <a href={href} target="_blank" rel="noreferrer">{children}</a>
+      if (href && href.startsWith('#/')) {
+        const target = href.slice(2)
+        return (
+          <a
+            {...props}
+            href={href}
+            onClick={e => { e.preventDefault(); navigate(target === 'index' ? '/' : `/${target}`) }}
+          >
+            {children}
+          </a>
+        )
+      }
+      return <a {...props} href={href} target="_blank" rel="noreferrer">{children}</a>
+    },
+    cardlist({ src, filter }) {
+      return <CardIndex src={src} filter={filter} />
     },
   }
 
@@ -54,7 +121,7 @@ function MarkdownPage({ slug }) {
 
   return (
     <article className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkFrontmatter]} rehypePlugins={[rehypeRaw]} components={components}>
         {content}
       </ReactMarkdown>
     </article>
@@ -97,7 +164,7 @@ function SidebarItem({ page, depth = 0 }) {
 }
 
 function SlugPage() {
-  const { slug } = useParams()
+  const { '*': slug } = useParams()
   return <MarkdownPage slug={slug} />
 }
 
@@ -112,9 +179,15 @@ export default function App() {
   }, [])
 
   return (
-    <div className="layout">
+    <>
+      <div className="bg-orbs" aria-hidden="true">
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+      </div>
+      <div className="layout">
       <nav className="sidebar">
-        <div className="sidebar-brand">Docs</div>
+        <div className="sidebar-brand">João Jorge</div>
         <ul>
           {pages.map(p => (
             <SidebarItem key={p.slug} page={p} depth={0} />
@@ -124,9 +197,10 @@ export default function App() {
       <main className="content">
         <Routes>
           <Route path="/" element={<MarkdownPage slug="index" />} />
-          <Route path="/:slug" element={<SlugPage />} />
+          <Route path="/*" element={<SlugPage />} />
         </Routes>
       </main>
-    </div>
+      </div>
+    </>
   )
 }
