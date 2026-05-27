@@ -1,4 +1,4 @@
-# Experience
+# 💼 Experience
 
 ## Full Stack Developer
 **Opensoft** — Lisbon, Portugal  

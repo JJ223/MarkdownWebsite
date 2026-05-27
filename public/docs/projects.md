@@ -1,4 +1,4 @@
-# Projects
+# 🚀 Projects
 
 ## Autonomous Multi-Vehicle Mission Planner
 **GMV — Master's Thesis** · _2023 – 2024_

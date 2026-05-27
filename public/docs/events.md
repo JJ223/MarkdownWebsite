@@ -1,4 +1,4 @@
-# Events
+# 📅 Events
 
 ## Samsung Innovation Campus — AI Programme
 **Samsung** · _September 2022 – January 2023_ · Lisbon, Portugal

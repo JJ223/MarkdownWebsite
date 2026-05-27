@@ -1,22 +1,19 @@
-# João Afonso Mendonça Jorge
+# 👋 Hi, I'm João Jorge
 
-Software engineer based in **Lisbon, Portugal**.
+A software engineer looking for a new challenge in Europe.
 
-I have one year of professional experience delivering full-stack solutions for government tax systems and autonomous vehicle software. I'm currently seeking a role in **drone, automotive, or embedded systems** where software has direct operational impact.
+I have experience delivering full-stack solutions for government tax systems and autonomous vehicle software. I'm currently seeking a role in **drone, automotive, or embedded systems** where software has direct operational impact.
 
----
 
-## What I'm Looking For
+## Welcome to my Markdown Website
+### How it works
 
-I'm seeking software engineering roles in **drone**, **automotive**, or **embedded systems** — places where the software has direct, measurable impact on how things move in the real world.
+Pages are plain `.md` files served from `public/docs/`. The app fetches the
+file for the current route, renders it with `react-markdown`, and intercepts
+any links ending in `.md` so they stay inside the single-page app.
 
-If you're working on:
-- Autonomous or unmanned vehicle systems
-- Mission planning, path planning, or real-time control
-- Embedded or systems-level software
-- High-reliability distributed backends
-
-…I'd love to hear from you.
+The sidebar is driven by `public/docs/manifest.json`, making it easy to add,
+reorder, or remove pages without touching any source code.
 
 ---
 

@@ -1,8 +1,8 @@
-# Education
+# 🎓 Education
 
 ## MSc in Computer Science and Engineering
 **NOVA School of Science and Technology (NOVA FCT)** — Lisbon, Portugal  
-_September 2019 – September 2024_ · GPA: **16 / 20**
+_September 2019 – September 2024_
 
 Integrated Master's programme covering software engineering, machine learning, distributed systems, and computer architecture.
 
@@ -10,7 +10,7 @@ Integrated Master's programme covering software engineering, machine learning, d
 
 ## Erasmus+ Exchange Programme
 **Technische Universität Dresden (TU Dresden)** — Dresden, Germany  
-_April 2023 – September 2023_ · GPA: **18 / 20**
+_April 2023 – September 2023_
 
 Semester abroad focusing on advanced software engineering, internet applications, and concurrent systems.
 

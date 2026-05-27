@@ -23,7 +23,7 @@ function MarkdownPage({ slug }) {
 
   const components = {
     a({ href, children }) {
-      if (href && /\.md$/.test(href)) {
+      if (href && /\.md$/.test(href) && !/^https?:\/\//.test(href)) {
         const target = href.replace(/^\.\//, '').replace(/\.md$/, '')
         return (
           <a
@@ -114,7 +114,7 @@ export default function App() {
   return (
     <div className="layout">
       <nav className="sidebar">
-        <div className="sidebar-brand">Docs</div>
+        <div className="sidebar-brand">João Jorge</div>
         <ul>
           {pages.map(p => (
             <SidebarItem key={p.slug} page={p} depth={0} />
