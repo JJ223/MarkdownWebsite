@@ -21,4 +21,4 @@ Designed and built mission planning software for unmanned vehicles (USV, UAV, UG
 
 ---
 
-[← Back to Projects](./projects.md) · [Work Projects](./work-projects.md)
+[← Back to Projects](projects.md) · [Work Projects](projects/work-projects.md)

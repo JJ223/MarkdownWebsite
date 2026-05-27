@@ -4,26 +4,24 @@
     "slug": "about",
     "title": "About Me",
     "children": [
-      { "slug": "education",  "title": "Education" },
-      { "slug": "experience", "title": "Experience" },
-      { "slug": "skills",     "title": "Skills" }
+      { "slug": "about/education",  "title": "Education" },
+      { "slug": "about/experience", "title": "Experience" },
+      { "slug": "about/skills",     "title": "Skills" }
     ]
   },
   {
     "slug": "projects",
     "title": "Projects",
     "children": [
-      { "slug": "work-projects", "title": "Work Projects" },
-      { "slug": "my-projects",   "title": "My Projects" }
+      { "slug": "projects/work-projects", "title": "Work Projects" },
+      { "slug": "projects/my-projects",   "title": "My Projects" }
     ]
   },
   {
     "slug": "blog",
     "title": "Blog",
     "children": [
-      { "slug": "blog-hello-world",  "title": "Hello World" },
-      { "slug": "blog-working-on",   "title": "What I'm working on" },
-      { "slug": "blog-gmv-lessons",  "title": "Lessons from GMV" }
+      { "slug": "blog/archive", "title": "Archive" }
     ]
   },
   { "slug": "events",     "title": "Events" },

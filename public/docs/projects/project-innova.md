@@ -22,4 +22,4 @@ Cross-platform mobile application built for a university-run event. Developed as
 
 ---
 
-[← Back to Projects](./projects.md) · [Work Projects](./work-projects.md)
+[← Back to Projects](projects.md) · [Work Projects](projects/work-projects.md)

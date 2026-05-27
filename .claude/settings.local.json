@@ -18,7 +18,13 @@
       "Bash(curl -o /dev/null -w \"%{http_code}\" -sf http://localhost:5173/docs/index.md)",
       "Bash(curl -sf http://localhost:5173/src/index.css)",
       "Bash(bash *)",
-      "Bash(npm install *)"
+      "Bash(npm install *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\docs\" -Recurse)",
+      "Bash(Select-Object FullName)",
+      "Bash(mkdir -p about projects blog)",
+      "Bash(mv education.md experience.md skills.md about/)",
+      "Bash(mv work-projects.md my-projects.md project-gmv.md project-opensoft.md project-kpmg.md project-innova.md project-samsung.md projects/)",
+      "Bash(mv blog-hello-world.md blog-working-on.md blog-gmv-lessons.md blog/)"
     ]
   }
 }

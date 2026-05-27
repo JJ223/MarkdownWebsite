@@ -21,4 +21,4 @@ End-to-end machine learning solution built as the capstone project of Samsung's 
 
 ---
 
-[← Back to Projects](./projects.md) · [My Projects](./my-projects.md)
+[← Back to Projects](projects.md) · [My Projects](projects/my-projects.md)

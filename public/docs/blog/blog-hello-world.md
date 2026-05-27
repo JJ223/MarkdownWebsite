@@ -8,4 +8,4 @@ _2026-05-27_
 
 ---
 
-[← Back to Blog](./blog.md)
+[← Back to Blog](blog.md) · [Archive](blog/archive.md)

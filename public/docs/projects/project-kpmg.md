@@ -21,4 +21,4 @@ Proof-of-concept system that assessed client risk by applying sentiment analysis
 
 ---
 
-[← Back to Projects](./projects.md) · [Work Projects](./work-projects.md)
+[← Back to Projects](projects.md) · [Work Projects](projects/work-projects.md)

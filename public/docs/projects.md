@@ -1,10 +1,10 @@
 # 🚀 Projects
 
-Highlighted work. See also: [Work Projects](./work-projects.md) · [My Projects](./my-projects.md)
+Highlighted work. See also: [Work Projects](projects/work-projects.md) · [My Projects](projects/my-projects.md)
 
 ---
 
-<a href="#/project-gmv" class="project-card">
+<a href="#/projects/project-gmv" class="project-card">
   <div class="project-card-img">
     <span>📷</span>
     <small>add screenshot</small>
@@ -22,7 +22,7 @@ Highlighted work. See also: [Work Projects](./work-projects.md) · [My Projects]
   </div>
 </a>
 
-<a href="#/project-opensoft" class="project-card">
+<a href="#/projects/project-opensoft" class="project-card">
   <div class="project-card-img">
     <span>📷</span>
     <small>add screenshot</small>

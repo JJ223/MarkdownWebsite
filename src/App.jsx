@@ -36,6 +36,18 @@ function MarkdownPage({ slug }) {
           </a>
         )
       }
+      if (href && href.startsWith('#/')) {
+        const target = href.slice(2)
+        return (
+          <a
+            {...props}
+            href={href}
+            onClick={e => { e.preventDefault(); navigate(target === 'index' ? '/' : `/${target}`) }}
+          >
+            {children}
+          </a>
+        )
+      }
       return <a {...props} href={href} target="_blank" rel="noreferrer">{children}</a>
     },
   }
@@ -99,7 +111,7 @@ function SidebarItem({ page, depth = 0 }) {
 }
 
 function SlugPage() {
-  const { slug } = useParams()
+  const { '*': slug } = useParams()
   return <MarkdownPage slug={slug} />
 }
 
@@ -126,7 +138,7 @@ export default function App() {
       <main className="content">
         <Routes>
           <Route path="/" element={<MarkdownPage slug="index" />} />
-          <Route path="/:slug" element={<SlugPage />} />
+          <Route path="/*" element={<SlugPage />} />
         </Routes>
       </main>
     </div>
