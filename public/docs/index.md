@@ -23,6 +23,7 @@ reorder, or remove pages without touching any source code.
 - [Projects](./projects.md) — technical highlights
 - [Education](./education.md) — degrees, exchange, and courses
 - [Skills](./skills.md) — languages, frameworks, and tools
+- [Blog](./blog.md) — updates, thoughts, and things worth writing down
 - [Events](./events.md) — programmes and activities I've been part of
 - [Contact](./contact.md) — get in touch
 

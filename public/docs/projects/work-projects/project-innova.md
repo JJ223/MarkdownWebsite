@@ -1,3 +1,11 @@
+---
+title: University Event Mobile App
+date: 2022-10-01
+description: Cross-platform mobile app for a university event with social features and a Firebase backend.
+tags: [React Native, Firebase, Java, Google Cloud]
+org: In-Nova
+---
+
 # University Event Mobile App
 **In-Nova** · _October 2022 – May 2023_
 

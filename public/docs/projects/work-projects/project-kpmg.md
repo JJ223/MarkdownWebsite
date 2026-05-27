@@ -1,3 +1,11 @@
+---
+title: Client Risk AI Prototype
+date: 2022-04-01
+description: AI prototype assessing client risk via sentiment analysis of real-time news articles. Deployed with Docker and Kubernetes.
+tags: [Python, Spring, Azure AI, Docker, Kubernetes]
+org: KPMG — Bachelor Internship
+---
+
 # Client Risk AI Prototype
 **KPMG — Bachelor Internship** · _April 2022 – August 2022_
 

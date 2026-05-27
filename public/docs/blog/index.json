@@ -1,0 +1,32 @@
+[
+  {
+    "slug": "blog/blog-hello-world",
+    "title": "Hello World — Why I built this",
+    "date": "2026-05-27",
+    "description": "The story behind this site — why I built it, how the content pipeline works, and where it's going next.",
+    "tags": [],
+    "org": null,
+    "image": null,
+    "highlight": false
+  },
+  {
+    "slug": "blog/blog-gmv-lessons",
+    "title": "Lessons from my thesis at GMV",
+    "date": null,
+    "description": "What I learned from a year of building mission planning software for autonomous vehicles.",
+    "tags": [],
+    "org": null,
+    "image": null,
+    "highlight": false
+  },
+  {
+    "slug": "blog/blog-working-on",
+    "title": "What I'm working on",
+    "date": null,
+    "description": "A running update on what I'm currently building, learning, and thinking about.",
+    "tags": [],
+    "org": null,
+    "image": null,
+    "highlight": false
+  }
+]

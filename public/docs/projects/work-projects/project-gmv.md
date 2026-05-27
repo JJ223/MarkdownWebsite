@@ -1,3 +1,12 @@
+---
+title: Autonomous Multi-Vehicle Mission Planner
+date: 2023-09-01
+description: Mission planning software for unmanned vehicles along Portugal's coastline. Hybrid optimisation algorithm, RESTful API, and Unity simulator.
+tags: [C#, .NET, Unity, Genetic Algorithms]
+org: GMV — Master's Thesis
+highlight: true
+---
+
 # Autonomous Multi-Vehicle Mission Planner
 **GMV — Master's Thesis** · _September 2023 – October 2024_
 

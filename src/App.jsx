@@ -2,8 +2,58 @@ import { useState, useEffect } from 'react'
 import { Routes, Route, NavLink, useNavigate, useParams } from 'react-router-dom'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkFrontmatter from 'remark-frontmatter'
 import rehypeRaw from 'rehype-raw'
 import './App.css'
+
+function CardIndex({ src, filter }) {
+  const [entries, setEntries] = useState(null)
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    fetch(`/docs/${src}`)
+      .then(r => r.json())
+      .then(setEntries)
+      .catch(() => setEntries([]))
+  }, [src])
+
+  if (!entries) return <div className="loading">Loading…</div>
+
+  const isBlog = src.includes('blog')
+  const displayed = filter === 'highlight' ? entries.filter(e => e.highlight) : entries
+
+  return (
+    <div>
+      {displayed.map(entry => (
+        <a
+          key={entry.slug}
+          className="project-card"
+          href={`#/${entry.slug}`}
+          onClick={e => { e.preventDefault(); navigate(`/${entry.slug}`) }}
+        >
+          <div className={`project-card-img${entry.image ? ' has-image' : ''}`}>
+            {entry.image
+              ? <img src={entry.image} alt={entry.title} />
+              : <><span>{isBlog ? '📝' : '📷'}</span><small>{entry.date || 'no date'}</small></>
+            }
+          </div>
+          <div className="project-card-body">
+            <h3>{entry.title}</h3>
+            {(entry.org || entry.date) && (
+              <div className="project-meta">{[entry.org, entry.date].filter(Boolean).join(' · ')}</div>
+            )}
+            {entry.description && <p>{entry.description}</p>}
+            {entry.tags?.length > 0 && (
+              <div className="project-tags">
+                {entry.tags.map(tag => <span key={tag} className="project-tag">{tag}</span>)}
+              </div>
+            )}
+          </div>
+        </a>
+      ))}
+    </div>
+  )
+}
 
 function MarkdownPage({ slug }) {
   const [content, setContent] = useState(null)
@@ -50,6 +100,9 @@ function MarkdownPage({ slug }) {
       }
       return <a {...props} href={href} target="_blank" rel="noreferrer">{children}</a>
     },
+    cardlist({ src, filter }) {
+      return <CardIndex src={src} filter={filter} />
+    },
   }
 
   if (error) {
@@ -68,7 +121,7 @@ function MarkdownPage({ slug }) {
 
   return (
     <article className="markdown-body">
-      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]} components={components}>
+      <ReactMarkdown remarkPlugins={[remarkGfm, remarkFrontmatter]} rehypePlugins={[rehypeRaw]} components={components}>
         {content}
       </ReactMarkdown>
     </article>

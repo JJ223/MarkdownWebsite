@@ -1,3 +1,11 @@
+---
+title: Price Prediction Model
+date: 2022-09-01
+description: End-to-end ML solution built as the capstone project of Samsung's AI programme. Regression model trained on real-world data, deployed via a Gradio web interface.
+tags: [Python, PyTorch, Gradio]
+org: Samsung Innovation Campus
+---
+
 # Price Prediction Model
 **Samsung Innovation Campus** · _September 2022 – January 2023_
 

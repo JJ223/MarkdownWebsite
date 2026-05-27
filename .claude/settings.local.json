@@ -24,7 +24,12 @@
       "Bash(mkdir -p about projects blog)",
       "Bash(mv education.md experience.md skills.md about/)",
       "Bash(mv work-projects.md my-projects.md project-gmv.md project-opensoft.md project-kpmg.md project-innova.md project-samsung.md projects/)",
-      "Bash(mv blog-hello-world.md blog-working-on.md blog-gmv-lessons.md blog/)"
+      "Bash(mv blog-hello-world.md blog-working-on.md blog-gmv-lessons.md blog/)",
+      "Bash(mkdir -p work-projects my-projects)",
+      "Bash(mv project-gmv.md project-opensoft.md project-kpmg.md project-innova.md work-projects/)",
+      "Bash(mv project-samsung.md my-projects/)",
+      "Bash(node scripts/generate-indexes.js)",
+      "Bash(node *)"
     ]
   }
 }

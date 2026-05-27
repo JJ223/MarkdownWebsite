@@ -1,3 +1,8 @@
+---
+title: What I'm working on
+description: A running update on what I'm currently building, learning, and thinking about.
+---
+
 # What I'm working on
 
 _coming soon_

@@ -260,6 +260,11 @@
   overflow: hidden;
 }
 
+.project-card-img.has-image {
+  border: none;
+  background: none;
+}
+
 .project-card-img img {
   width: 100%;
   height: 100%;
