@@ -119,6 +119,8 @@
   max-width: 760px;
   color: #c8bedd;
   margin: 0 auto;
+  font-size: 1.0625rem;
+  line-height: 1.75;
 }
 
 .markdown-body h1,

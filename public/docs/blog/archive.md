@@ -1,4 +1,4 @@
-# 📚 Archive
+# 📖 Archive
 
 All posts in reverse chronological order.
 
