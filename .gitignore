@@ -26,6 +26,7 @@ dist-ssr
 # AI tools
 .claude
 .superpowers
+.playwright-mcp
 
 # OS
 Thumbs.db
