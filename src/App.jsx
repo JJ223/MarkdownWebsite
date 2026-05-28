@@ -44,8 +44,8 @@ function CardIndex({ src, filter }) {
             )}
             {entry.description && <p>{entry.description}</p>}
             {entry.tags?.length > 0 && (
-              <div className="project-tags">
-                {entry.tags.map(tag => <span key={tag} className="project-tag">{tag}</span>)}
+              <div className="tags">
+                {entry.tags.map(tag => <span key={tag} className="tag">{tag}</span>)}
               </div>
             )}
           </div>
