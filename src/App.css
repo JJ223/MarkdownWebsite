@@ -234,6 +234,11 @@
 
 /* ── Project cards ──────────────────────────────────── */
 
+.markdown-body .project-card,
+.markdown-body .project-card * {
+  text-decoration: none;
+}
+
 .project-card {
   display: flex;
   gap: 20px;
@@ -478,6 +483,12 @@
 
 .hamburger {
   display: none;
+  transition: opacity 0.4s ease;
+}
+
+.hamburger.hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ── Responsive ─────────────────────────────────────── */
@@ -540,9 +551,25 @@
     padding: 60px 16px 24px;
   }
 
+
   .social-bar {
-    left: 50%;
+    left: 0;
   }
+
+  .bg-orbs {
+    opacity: 0.5;
+  }
+
+  .project-card {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .project-card-img {
+    width: 100%;
+    height: 180px;
+  }
+
 }
 
 /* ── Contact rows ───────────────────────────────────────────────── */
@@ -616,22 +643,10 @@
 /* ── Social bar ─────────────────────────────────────────────────── */
 
 .social-bar {
-  position: fixed;
-  bottom: 24px;
-  left: calc(50% + var(--sidebar-w) / 2);
-  transform: translateX(-50%) translateY(12px);
   display: flex;
+  justify-content: center;
   gap: 14px;
-  z-index: 100;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s, transform 0.3s;
-}
-
-.social-bar.visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-  pointer-events: auto;
+  padding: 40px 0 8px;
 }
 
 .social-bubble {

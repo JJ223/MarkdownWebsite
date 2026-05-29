@@ -49,6 +49,7 @@ html, body {
   color: var(--text);
   font: 16px/1.6 system-ui, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
+  scrollbar-gutter: stable;
 }
 
 #root {

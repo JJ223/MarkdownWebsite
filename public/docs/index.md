@@ -1,5 +1,5 @@
 <style>
-.hero { max-width: 620px; }
+.hero { }
 
 .hero-hi {
   color: var(--muted);
