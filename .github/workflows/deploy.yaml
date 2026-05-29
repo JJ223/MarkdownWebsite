@@ -18,9 +18,4 @@ jobs:
         run: npm run build
 
       - name: Deploy to Nginx
-        run: |
-          sudo rm -rf /var/www/Personal-Website
-          sudo cp -r dist/ /var/www/Personal-Website
-
-      - name: Reload Nginx
-        run: sudo systemctl reload nginx
+        run: sudo rsync -a --delete dist/ /var/www/Personal-Website/
