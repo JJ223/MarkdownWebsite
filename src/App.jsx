@@ -6,16 +6,19 @@ import remarkFrontmatter from 'remark-frontmatter'
 import rehypeRaw from 'rehype-raw'
 import './App.css'
 
+const jsonCache = {}
+
 function CardIndex({ src, filter }) {
-  const [entries, setEntries] = useState(null)
+  const [entries, setEntries] = useState(jsonCache[src] ?? null)
   const navigate = useNavigate()
   const touchStartY = useRef(0)
   const didScroll = useRef(false)
 
   useEffect(() => {
+    if (jsonCache[src]) { setEntries(jsonCache[src]); return }
     fetch(`/docs/${src}`)
       .then(r => r.json())
-      .then(setEntries)
+      .then(data => { jsonCache[src] = data; setEntries(data) })
       .catch(() => setEntries([]))
   }, [src])
 
@@ -59,12 +62,15 @@ function CardIndex({ src, filter }) {
   )
 }
 
+const mdCache = {}
+
 function MarkdownPage({ slug }) {
-  const [content, setContent] = useState(null)
+  const [content, setContent] = useState(mdCache[slug] ?? null)
   const [error, setError] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
+    if (mdCache[slug]) { setContent(mdCache[slug]); return }
     setContent(null)
     setError(false)
     fetch(`/docs/${slug}.md`)
@@ -72,7 +78,7 @@ function MarkdownPage({ slug }) {
         if (!r.ok) throw new Error('not found')
         return r.text()
       })
-      .then(setContent)
+      .then(text => { mdCache[slug] = text; setContent(text) })
       .catch(() => setError(true))
   }, [slug])
 
@@ -106,6 +112,10 @@ function MarkdownPage({ slug }) {
     },
     cardlist({ src, filter }) {
       return <CardIndex src={src} filter={filter} />
+    },
+    p({ children, node, ...props }) {
+      if (node?.children?.some(c => c.tagName === 'cardlist')) return <>{children}</>
+      return <p {...props}>{children}</p>
     },
   }), [navigate])
 
@@ -202,6 +212,21 @@ export default function App() {
       .then(r => r.json())
       .then(setPages)
       .catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const prefetch = [
+      'blog/index.json',
+      'projects/work-projects/index.json',
+      'projects/my-projects/index.json',
+    ]
+    prefetch.forEach(src => {
+      if (jsonCache[src]) return
+      fetch(`/docs/${src}`)
+        .then(r => r.json())
+        .then(data => { jsonCache[src] = data })
+        .catch(() => {})
+    })
   }, [])
 
   return (
