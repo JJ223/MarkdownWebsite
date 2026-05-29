@@ -128,7 +128,7 @@ function MarkdownPage({ slug }) {
   )
 }
 
-function SidebarItem({ page, depth = 0 }) {
+function SidebarItem({ page, depth = 0, onNavigate }) {
   const [open, setOpen] = useState(true)
   const hasChildren = page.children?.length > 0
 
@@ -148,6 +148,7 @@ function SidebarItem({ page, depth = 0 }) {
         <NavLink
           to={page.slug === 'index' ? '/' : `/${page.slug}`}
           end={page.slug === 'index'}
+          onClick={onNavigate}
         >
           {page.title}
         </NavLink>
@@ -155,7 +156,7 @@ function SidebarItem({ page, depth = 0 }) {
       {hasChildren && open && (
         <ul>
           {page.children.map(child => (
-            <SidebarItem key={child.slug} page={child} depth={depth + 1} />
+            <SidebarItem key={child.slug} page={child} depth={depth + 1} onNavigate={onNavigate} />
           ))}
         </ul>
       )}
@@ -171,7 +172,9 @@ function SlugPage() {
 export default function App() {
   const [pages, setPages] = useState([])
   const [socialVisible, setSocialVisible] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const sentinelRef = useRef(null)
+  const closeSidebar = () => setSidebarOpen(false)
 
   useEffect(() => {
     const sentinel = sentinelRef.current
@@ -198,12 +201,19 @@ export default function App() {
         <div className="orb orb-2" />
         <div className="orb orb-3" />
       </div>
+      <button className="hamburger" onClick={() => setSidebarOpen(o => !o)} aria-label="Toggle menu">
+        {sidebarOpen
+          ? <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          : <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        }
+      </button>
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={closeSidebar} />}
       <div className="layout">
-      <nav className="sidebar">
+      <nav className={`sidebar${sidebarOpen ? ' open' : ''}`}>
         <div className="sidebar-brand">João Jorge</div>
         <ul>
           {pages.map(p => (
-            <SidebarItem key={p.slug} page={p} depth={0} />
+            <SidebarItem key={p.slug} page={p} depth={0} onNavigate={closeSidebar} />
           ))}
         </ul>
       </nav>
