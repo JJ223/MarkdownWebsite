@@ -229,10 +229,12 @@ export default function App() {
       </nav>
       <main className="content">
         <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<MarkdownPage slug="index" />} />
-          <Route path="/*" element={<SlugPage />} />
-        </Routes>
+        <div className="content-body">
+          <Routes>
+            <Route path="/" element={<MarkdownPage slug="index" />} />
+            <Route path="/*" element={<SlugPage />} />
+          </Routes>
+        </div>
         <div className="social-bar">
           <a className="social-bubble" href="mailto:joaojorg4@gmail.com" aria-label="Email">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
