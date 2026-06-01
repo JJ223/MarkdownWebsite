@@ -32,4 +32,14 @@ function generateIndexesPlugin() {
 
 export default defineConfig({
   plugins: [react(), generateIndexesPlugin()],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          markdown: ['react-markdown', 'remark-gfm', 'remark-frontmatter', 'rehype-raw'],
+        },
+      },
+    },
+  },
 })

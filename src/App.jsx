@@ -40,7 +40,7 @@ function CardIndex({ src, filter }) {
         >
           <div className={`project-card-img${entry.image ? ' has-image' : ''}`}>
             {entry.image
-              ? <img src={entry.image} alt={entry.title} />
+              ? <img src={entry.image} alt={entry.title} loading="lazy" decoding="async" width="240" height="150" />
               : <><span>{isBlog ? '📝' : '📷'}</span><small>{entry.date || 'no date'}</small></>
             }
           </div>
@@ -112,6 +112,9 @@ function MarkdownPage({ slug }) {
     },
     cardlist({ src, filter }) {
       return <CardIndex src={src} filter={filter} />
+    },
+    img({ src, alt, node, ...props }) {
+      return <img src={src} alt={alt} loading="lazy" decoding="async" {...props} />
     },
     p({ children, node, ...props }) {
       if (node?.children?.some(c => c.tagName === 'cardlist')) return <>{children}</>

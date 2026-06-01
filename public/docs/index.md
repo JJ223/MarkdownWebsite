@@ -117,6 +117,6 @@
     <a href="#/blog">Blog <span class="arr">→</span></a>
   </div>
   <div class="hero-photo">
-    <img src="/docs/about/DuckPhoto.jpeg" alt="João Jorge" />
+    <img src="/docs/about/DuckPhoto.jpeg" alt="João Jorge" width="640" height="863" loading="lazy" />
   </div>
 </div>

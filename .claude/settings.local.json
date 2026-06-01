@@ -49,7 +49,10 @@
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\images\" | Select-Object Name, @{Name='KB';Expression={[math]::Round\\($_.Length/1KB, 1\\)}})",
       "Bash(git rm *)",
       "Bash(rmdir /s /q docs)",
-      "Bash(Remove-Item *)"
+      "Bash(Remove-Item *)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\images\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\docs\\\\about\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\dist\\\\assets\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}} | Sort-Object Size_KB -Descending)"
     ]
   }
 }

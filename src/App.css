@@ -461,7 +461,7 @@
   top: -100px;
   left: 0%;
   background: radial-gradient(circle, rgba(90, 45, 160, 0.45) 0%, transparent 70%);
-  filter: blur(80px);
+  filter: blur(50px);
   animation: orb-drift-1 32s ease-in-out infinite;
 }
 
@@ -471,7 +471,7 @@
   bottom: -80px;
   right: 5%;
   background: radial-gradient(circle, rgba(55, 25, 120, 0.4) 0%, transparent 70%);
-  filter: blur(70px);
+  filter: blur(45px);
   animation: orb-drift-2 24s ease-in-out infinite;
 }
 
@@ -481,7 +481,7 @@
   top: 35%;
   left: 40%;
   background: radial-gradient(circle, rgba(110, 60, 170, 0.3) 0%, transparent 70%);
-  filter: blur(60px);
+  filter: blur(35px);
   animation: orb-drift-3 40s ease-in-out infinite;
 }
 
@@ -500,6 +500,10 @@
 @keyframes orb-drift-3 {
   0%, 100% { transform: translate(0, 0)        scale(1);    }
   50%       { transform: translate(25px, -25px) scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb { animation: none; }
 }
 
 /* ── Hamburger ──────────────────────────────────────── */
@@ -582,6 +586,8 @@
   .bg-orbs {
     opacity: 0.5;
   }
+
+  .orb { animation: none; }
 
   .project-card {
     flex-direction: column;
