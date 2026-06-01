@@ -55,4 +55,4 @@ I'm always open to interesting conversations about software engineering, autonom
 
 ---
 
-[Experience](./experience.md) · [Projects](./projects.md) · [Back to Home](./index.md)
+[Home](./index.md) · [About Me](./about.md) · [Projects](./projects.md) · [Blog](./blog.md)

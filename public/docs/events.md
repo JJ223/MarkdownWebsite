@@ -47,4 +47,4 @@ The Computer Science Group organises an annual competition featuring weekly codi
 
 ---
 
-[Back to Home](./index.md)
+[Home](./index.md) · [About Me](./about.md) · [Projects](./projects.md) · [Blog](./blog.md)

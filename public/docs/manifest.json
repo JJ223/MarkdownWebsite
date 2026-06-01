@@ -9,14 +9,7 @@
       { "slug": "about/skills",     "title": "Skills" }
     ]
   },
-  {
-    "slug": "projects",
-    "title": "Projects",
-    "children": [
-      { "slug": "projects/work-projects", "title": "Work Projects" },
-      { "slug": "projects/my-projects",   "title": "My Projects" }
-    ]
-  },
+  { "slug": "projects", "title": "Projects" },
   {
     "slug": "blog",
     "title": "Blog",

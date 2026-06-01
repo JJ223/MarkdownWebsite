@@ -24,4 +24,4 @@ _September 2022 – January 2023_
 
 ---
 
-[Back to Home](./index.md)
+[Home](./index.md) · [Projects](./projects.md) · [Blog](./blog.md)

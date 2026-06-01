@@ -94,4 +94,4 @@
 
 ---
 
-[Experience](./experience.md) · [Projects](./projects.md) · [Back to Home](./index.md)
+[Home](./index.md) · [Projects](./projects.md) · [Blog](./blog.md)

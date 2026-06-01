@@ -1,6 +1,6 @@
 # 🙋 About Me
 
-I'm from Portugal and spend most of my time outside of work exercising, reading, and being out in nature. I tend towards minimalism in most things — including how I work. 
+I'm from Portugal and spend most of my time outside of work exercising, reading, and being out in nature. 
 
 I use [Obsidian](https://obsidian.md) daily as my main note-taking tool, so building this website in Markdown felt like a natural extension of that. The goal was simple: a clean, low-friction space to share my work and ideas without getting in the way of writing them.
 
@@ -20,4 +20,4 @@ If you're working on:
 
 ---
 
-[Home](./index.md)
+[Education](./about/education.md) · [Experience](./about/experience.md) · [Skills](./about/skills.md)

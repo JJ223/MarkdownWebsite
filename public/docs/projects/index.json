@@ -1,0 +1,47 @@
+[
+  {
+    "slug": "projects/project-opensoft",
+    "title": "National Tax Filing Platform",
+    "date": "2025-11-01",
+    "description": "Core contributor to Portugal's primary national tax filing system, serving millions of citizens. Led architecture and delivery of a new tax information systems project.",
+    "tags": ["Java", "Spring", "React", "SQL"],
+    "org": "Opensoft",
+    "image": "/images/project-opensoft.png"
+  },
+  {
+    "slug": "projects/project-gmv",
+    "title": "Autonomous Multi-Vehicle Mission Planner",
+    "date": "2024-10-01",
+    "description": "Mission planning software for unmanned vehicles along Portugal's coastline. Hybrid optimisation algorithm, RESTful API, and Unity simulator.",
+    "tags": ["C#", ".NET", "Unity", "Genetic Algorithms"],
+    "org": "GMV — Master's Thesis",
+    "image": "/images/project-gmv.png"
+  },
+  {
+    "slug": "projects/project-innova",
+    "title": "University Event Mobile App",
+    "date": "2023-05-01",
+    "description": "Cross-platform mobile app for a university event with social features and a Firebase backend.",
+    "tags": ["React Native", "Firebase", "Java", "Google Cloud"],
+    "org": "In-Nova",
+    "image": "/images/project-innova.png"
+  },
+  {
+    "slug": "projects/project-samsung",
+    "title": "Price Prediction Model",
+    "date": "2023-01-01",
+    "description": "End-to-end ML solution built as the capstone project of Samsung's AI programme. Regression model trained on real-world data, deployed via a Gradio web interface.",
+    "tags": ["Python", "PyTorch", "Gradio"],
+    "org": "Samsung Innovation Campus",
+    "image": "/images/project-samsung.png"
+  },
+  {
+    "slug": "projects/project-kpmg",
+    "title": "Client Risk AI Prototype",
+    "date": "2022-08-01",
+    "description": "AI prototype assessing client risk via sentiment analysis of real-time news articles. Deployed with Docker and Kubernetes.",
+    "tags": ["Python", "Spring", "Azure AI", "Docker", "Kubernetes"],
+    "org": "KPMG — Bachelor Internship",
+    "image": "/images/project-kpmg.jpg"
+  }
+]

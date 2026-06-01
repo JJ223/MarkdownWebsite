@@ -4,11 +4,12 @@ date: 2023-09-01
 description: Mission planning software for unmanned vehicles along Portugal's coastline. Hybrid optimisation algorithm, RESTful API, and Unity simulator.
 tags: [C#, .NET, Unity, Genetic Algorithms]
 org: GMV — Master's Thesis
-highlight: true
 ---
 
 # Autonomous Multi-Vehicle Mission Planner
 **GMV — Master's Thesis** · _September 2023 – October 2024_
+
+<div class="article-banner"><img src="/images/project-gmv.png" alt="Autonomous Multi-Vehicle Mission Planner" /></div>
 
 ## Overview
 Designed and built mission planning software for unmanned vehicles (USV, UAV, UGV) operating across multiple environments along Portugal's coastline. The system generates coordinated multi-vehicle mission plans under real operational constraints.
@@ -27,4 +28,4 @@ Designed and built mission planning software for unmanned vehicles (USV, UAV, UG
 
 ---
 
-[← Back to Projects](projects.md) · [Work Projects](projects/work-projects.md)
+[← Back to Projects](projects.md)

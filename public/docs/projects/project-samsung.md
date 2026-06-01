@@ -9,6 +9,8 @@ org: Samsung Innovation Campus
 # Price Prediction Model
 **Samsung Innovation Campus** · _September 2022 – January 2023_
 
+<div class="article-banner"><img src="/images/project-samsung.png" alt="Price Prediction Model" /></div>
+
 ## Overview
 End-to-end machine learning solution built as the capstone project of Samsung's 16-week AI programme. Trained a regression model on real-world data and deployed it through an interactive web interface.
 
@@ -26,4 +28,4 @@ End-to-end machine learning solution built as the capstone project of Samsung's 
 
 ---
 
-[← Back to Projects](projects.md) · [My Projects](projects/my-projects.md)
+[← Back to Projects](projects.md)

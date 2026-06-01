@@ -63,4 +63,4 @@ _April 2022 – August 2022_
 
 ---
 
-[Skills](./skills.md) · [Projects](./projects.md) · [Back to Home](./index.md)
+[Home](./index.md) · [Projects](./projects.md) · [Blog](./blog.md)

@@ -67,6 +67,20 @@
 }
 .hero-cta a .arr { transition: transform 0.2s; }
 .hero-cta a:hover .arr { transform: translateX(3px); }
+.hero-photo {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  animation: h-up 0.5s ease-out 4.2s forwards;
+}
+.hero-photo img {
+  width: 320px;
+  height: auto;
+  display: block;
+  border-radius: 10px;
+  border: 1px solid var(--table-border);
+}
 
 @keyframes h-name   { from { width: 0; } to { width: 11ch; } }
 @keyframes h-cursor {
@@ -101,5 +115,8 @@
     <a href="#/about/experience">Experience <span class="arr">→</span></a>
     <a href="#/projects">Projects <span class="arr">→</span></a>
     <a href="#/blog">Blog <span class="arr">→</span></a>
+  </div>
+  <div class="hero-photo">
+    <img src="/docs/about/DuckPhoto.jpeg" alt="João Jorge" />
   </div>
 </div>

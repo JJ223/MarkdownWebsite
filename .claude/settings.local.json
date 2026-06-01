@@ -46,7 +46,10 @@
       "mcp__plugin_playwright_playwright__browser_close",
       "Bash(git show *)",
       "Bash(cat src/index.css)",
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\images\" | Select-Object Name, @{Name='KB';Expression={[math]::Round\\($_.Length/1KB, 1\\)}})"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\images\" | Select-Object Name, @{Name='KB';Expression={[math]::Round\\($_.Length/1KB, 1\\)}})",
+      "Bash(git rm *)",
+      "Bash(rmdir /s /q docs)",
+      "Bash(Remove-Item *)"
     ]
   }
 }

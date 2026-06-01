@@ -217,8 +217,7 @@ export default function App() {
   useEffect(() => {
     const prefetch = [
       'blog/index.json',
-      'projects/work-projects/index.json',
-      'projects/my-projects/index.json',
+      'projects/index.json',
     ]
     prefetch.forEach(src => {
       if (jsonCache[src]) return

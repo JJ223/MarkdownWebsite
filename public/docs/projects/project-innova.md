@@ -9,6 +9,8 @@ org: In-Nova
 # University Event Mobile App
 **In-Nova** · _October 2022 – May 2023_
 
+<div class="article-banner"><img src="/images/project-innova.png" alt="University Event Mobile App" /></div>
+
 ## Overview
 Cross-platform mobile application built for a university-run event. Developed as part of NOVA FCT's student software projects initiative, working in a small team through the full product lifecycle.
 
@@ -27,4 +29,4 @@ Cross-platform mobile application built for a university-run event. Developed as
 
 ---
 
-[← Back to Projects](projects.md) · [Work Projects](projects/work-projects.md)
+[← Back to Projects](projects.md)

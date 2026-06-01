@@ -4,11 +4,12 @@ date: 2024-11-01
 description: Core contributor to Portugal's primary national tax filing system, serving millions of citizens. Led architecture and delivery of a new tax information systems project.
 tags: [Java, Spring, React, SQL]
 org: Opensoft
-highlight: true
 ---
 
 # National Tax Filing Platform
 **Opensoft** · _November 2024 – November 2025_
+
+<div class="article-banner"><img src="/images/project-opensoft.png" alt="National Tax Filing Platform" /></div>
 
 ## Overview
 Core contributor to multiple Portuguese government tax platforms, including the primary national online tax filing system serving millions of citizens.
@@ -27,4 +28,4 @@ Core contributor to multiple Portuguese government tax platforms, including the 
 
 ---
 
-[← Back to Projects](projects.md) · [Work Projects](projects/work-projects.md)
+[← Back to Projects](projects.md)
