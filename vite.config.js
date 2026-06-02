@@ -35,9 +35,9 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          markdown: ['react-markdown', 'remark-gfm', 'remark-frontmatter', 'rehype-raw'],
+        manualChunks(id) {
+          if (['react', 'react-dom', 'react-router-dom'].some(p => id.includes(`/node_modules/${p}/`))) return 'vendor'
+          if (['react-markdown', 'remark-gfm', 'remark-frontmatter', 'rehype-raw'].some(p => id.includes(`/node_modules/${p}/`))) return 'markdown'
         },
       },
     },
