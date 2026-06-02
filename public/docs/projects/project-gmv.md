@@ -11,8 +11,8 @@ org: GMV — Master's Thesis
 
 <div class="article-banner"><img src="/images/project-gmv.png" alt="Autonomous Multi-Vehicle Mission Planner" /></div>
 
-## Overview
-Designed and built mission planning software for unmanned vehicles (USV, UAV, UGV) operating across multiple environments along Portugal's coastline. The system generates coordinated multi-vehicle mission plans under real operational constraints.
+## Description
+Engineered a full-stack mission planning system for autonomous multi-environment unmanned vehicles (USV, UAV, UGV) deployed along Portugal's coastline, as a 13-month internship thesis at GMV — a leading European space and defence technology company. At the core of the system is a custom hybrid optimisation algorithm combining genetic and heuristic search strategies to generate efficient, constraint-aware plans across heterogeneous vehicle fleets. The system was exposed through a production-grade RESTful HTTP API enabling integration with external platforms, and complemented by a Unity-based mission simulator for real-time visual validation. Delivered as a complete, independently architected system from research through to implementation.
 
 ## Highlights
 

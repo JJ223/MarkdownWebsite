@@ -1,7 +1,7 @@
 ---
 title: Price Prediction Model
 date: 2022-09-01
-description: End-to-end ML solution built as the capstone project of Samsung's AI programme. Regression model trained on real-world data, deployed via a Gradio web interface.
+description: Completed a 16-week course focused on developing fundamental AI skills. Learned Artificial Intelligence and Modeling based on a solid foundation of Mathematics, including probability, statistics, and linear algebra.
 tags: [Python, PyTorch, Gradio]
 org: Samsung Innovation Campus
 ---
@@ -11,8 +11,8 @@ org: Samsung Innovation Campus
 
 <div class="article-banner"><img src="/images/project-samsung.png" alt="Price Prediction Model" /></div>
 
-## Overview
-End-to-end machine learning solution built as the capstone project of Samsung's 16-week AI programme. Trained a regression model on real-world data and deployed it through an interactive web interface.
+## Description
+Through Samsung Innovation Campus’s rigorous 16-week AI programme at NOVA FCT, built a strong foundation in the mathematics underpinning modern machine learning — probability, statistics, and linear algebra — before applying those principles to a live industrial problem. Working with a real dataset from an air filter manufacturer, trained a PyTorch regression model to predict product pricing, then wrapped the solution in an interactive Gradio web interface for non-technical stakeholders. Delivered the full ML pipeline from data analysis through model training, evaluation, and deployment — solving a commercially motivated challenge under Samsung’s engineering and educational guidance.
 
 ## Highlights
 
@@ -24,7 +24,7 @@ End-to-end machine learning solution built as the capstone project of Samsung's 
 
 **Languages:** Python
 
-**Frameworks & Tools:** PyTorch · Gradio
+**Frameworks & Tools:** PyTorch · Gradio · Pandas · TensorFlow
 
 ---
 
