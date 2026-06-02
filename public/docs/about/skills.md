@@ -1,4 +1,4 @@
-# ⚡ Skills
+# Skills
 
 <div class="skill-section">
   <div class="skill-title">Programming Languages</div>

@@ -1,4 +1,4 @@
-# 📅 Events
+# Events
 
 ## IT Support Technician — European Parliament Election
 **Portuguese Government** · _June 2024_ · Portugal

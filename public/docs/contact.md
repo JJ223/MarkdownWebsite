@@ -1,4 +1,4 @@
-# 📬 Contact
+# Contact
 
 I'm always open to interesting conversations about software engineering, autonomous systems, and drone or automotive technology.
 

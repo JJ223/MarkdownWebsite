@@ -1,4 +1,4 @@
-# 🙋 About Me
+# About Me
 
 I'm from Portugal and spend most of my time outside of work exercising, reading, and being out in nature. 
 

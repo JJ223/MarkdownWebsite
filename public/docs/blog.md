@@ -1,4 +1,4 @@
-# ✍️ Blog
+# Blog
 
 A space for updates, thoughts, and things I find worth writing down.
 

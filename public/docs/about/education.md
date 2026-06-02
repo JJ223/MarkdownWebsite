@@ -1,4 +1,4 @@
-# 🎓 Education
+# Education
 
 ## MSc in Computer Science and Engineering
 **NOVA School of Science and Technology (NOVA FCT)** — Lisbon, Portugal  
