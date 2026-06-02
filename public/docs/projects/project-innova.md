@@ -12,7 +12,11 @@ org: In-Nova
 <div class="article-banner"><img src="/images/project-innova.png" alt="University Event Mobile App" /></div>
 
 ## Description
-As a member of the software projects team at In-Nova — the Junior Enterprise of NOVA School of Science and Technology — contributed front-end and back-end development to a cross-platform mobile application for a major university event. The app featured social networking capabilities including profiles, activity feeds, and real-time interactions, built with React Native for iOS and Android, Firebase for authentication and real-time data, and hosted on Google Cloud Platform. Delivered across the full product lifecycle — planning, development, QA, and release — in a team environment demanding strong communication, problem-solving, and quality assurance discipline.
+As a member of the software projects team at In-Nova — the Junior Enterprise of NOVA School of Science and Technology — contributed front-end and back-end development to a cross-platform mobile application for a major university event. 
+
+The app featured social networking capabilities including profiles, activity feeds, and real-time interactions, built with React Native for iOS and Android, Firebase for authentication and real-time data, and hosted on Google Cloud Platform. 
+
+Delivered across the full product lifecycle — planning, development, QA, and release — in a team environment demanding strong communication, problem-solving, and quality assurance discipline.
 
 ## Highlights
 

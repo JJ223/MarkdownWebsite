@@ -12,7 +12,11 @@ org: Samsung Innovation Campus
 <div class="article-banner"><img src="/images/project-samsung.png" alt="Price Prediction Model" /></div>
 
 ## Description
-Through Samsung Innovation Campus’s rigorous 16-week AI programme at NOVA FCT, built a strong foundation in the mathematics underpinning modern machine learning — probability, statistics, and linear algebra — before applying those principles to a live industrial problem. Working with a real dataset from an air filter manufacturer, trained a PyTorch regression model to predict product pricing, then wrapped the solution in an interactive Gradio web interface for non-technical stakeholders. Delivered the full ML pipeline from data analysis through model training, evaluation, and deployment — solving a commercially motivated challenge under Samsung’s engineering and educational guidance.
+Through Samsung Innovation Campus’s rigorous 16-week AI programme at NOVA FCT, built a strong foundation in the mathematics underpinning modern machine learning — probability, statistics, and linear algebra — before applying those principles to a live industrial problem. 
+
+Working with a real dataset from an air filter manufacturer, trained a PyTorch regression model to predict product pricing, then wrapped the solution in an interactive Gradio web interface for non-technical stakeholders. 
+
+Delivered the full ML pipeline from data analysis through model training, evaluation, and deployment — solving a commercially motivated challenge under Samsung’s engineering and educational guidance.
 
 ## Highlights
 

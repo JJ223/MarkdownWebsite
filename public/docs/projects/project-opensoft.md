@@ -12,7 +12,11 @@ org: Opensoft
 <div class="article-banner"><img src="/images/project-opensoft.png" alt="National Tax Filing Platform" /></div>
 
 ## Description
-Core contributor to multiple critical Portuguese government tax platforms, including the primary national online tax filing system serving millions of citizens. Developed secure backend workflows for financial data processing, authentication, and validation using Java and Spring, alongside citizen-facing and administrative React interfaces built to strict compliance and reliability standards. Beyond feature work, led the end-to-end architecture and delivery of a new tax information systems project — coordinating with product owners and QA from initial design through production deployment — demonstrating the ability to drive complex, high-stakes initiatives within regulated national infrastructure.
+Core contributor to multiple critical Portuguese government tax platforms, including the primary national online tax filing system serving millions of citizens. 
+
+Developed secure backend workflows for financial data processing, authentication, and validation using Java and Spring, alongside citizen-facing and administrative React interfaces built to strict compliance and reliability standards. 
+
+Beyond feature work, led the end-to-end architecture and delivery of a new tax information systems project — coordinating with product owners and QA from initial design through production deployment — demonstrating the ability to drive complex, high-stakes initiatives within regulated national infrastructure.
 
 ## Highlights
 

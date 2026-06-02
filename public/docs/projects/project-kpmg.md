@@ -12,7 +12,11 @@ org: KPMG — Bachelor Internship
 <div class="article-banner"><img src="/images/project-kpmg.jpg" alt="Client Risk AI Prototype" /></div>
 
 ## Description
-During a five-month internship at KPMG — one of the Big Four professional services firms — developed an AI-powered prototype to assess client risk by applying sentiment analysis to real-time financial news. Trained Azure AI models to classify news sentiment and surface emerging risk signals to advisors faster than traditional methods allow. The backend was architected as modular microservices using Spring and RESTful APIs, containerised with Docker, and orchestrated with Kubernetes for enterprise-grade deployment. Delivered a production-quality AI system under real corporate constraints within a globally recognised professional services environment.
+During a five-month internship at KPMG — one of the Big Four professional services firms — developed an AI-powered prototype to assess client risk by applying sentiment analysis to real-time financial news. 
+
+Trained Azure AI models to classify news sentiment and surface emerging risk signals to advisors faster than traditional methods allow. The backend was architected as modular microservices using Spring and RESTful APIs, containerised with Docker, and orchestrated with Kubernetes for enterprise-grade deployment. 
+
+Delivered a production-quality AI system under real corporate constraints within a globally recognised professional services environment.
 
 ## Highlights
 
