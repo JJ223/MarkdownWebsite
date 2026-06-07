@@ -52,7 +52,12 @@
       "Bash(Remove-Item *)",
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\images\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
       "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\public\\\\docs\\\\about\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}})",
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\dist\\\\assets\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}} | Sort-Object Size_KB -Descending)"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\JoaoJ\\\\Documents\\\\GitHub\\\\MarkdownWebsite\\\\dist\\\\assets\" | Select-Object Name, @{N='Size_KB';E={[math]::Round\\($_.Length/1KB,1\\)}} | Sort-Object Size_KB -Descending)",
+      "Bash(npx eslint *)",
+      "Bash(grep -v \"^$\")",
+      "mcp__plugin_playwright_playwright__browser_console_messages",
+      "mcp__plugin_playwright_playwright__browser_file_upload",
+      "Bash(taskkill //F //IM node.exe)"
     ]
   }
 }

@@ -1,5 +1,14 @@
 [
   {
+    "slug": "book-graph",
+    "title": "Book Graph",
+    "date": "2026-06-01",
+    "description": "An interactive star-map of your reading. Upload your Goodreads export and watch your library bloom into constellations — zoom, hover, and click the stars for recommendations based on your taste.",
+    "tags": ["React", "Canvas", "Data Viz", "UMAP"],
+    "org": "Personal",
+    "image": "/images/project-bookgraph.svg"
+  },
+  {
     "slug": "projects/project-opensoft",
     "title": "National Tax Filing Platform",
     "date": "2025-11-01",
