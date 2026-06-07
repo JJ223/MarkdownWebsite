@@ -1,6 +1,11 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { SAMPLE_PLOT } from './bookGraphSample.js'
 import './BookGraph.css'
+
+// In local dev (`npm run dev`) we never hit the real API — it costs tokens and
+// we want a deterministic plot. The production build always calls the live API.
+const USE_MOCK = import.meta.env.DEV
 
 /* ─────────────────────────────────────────────────────────────────────────
    Layer palette — purple-family hues so every dot reads as a "star" in the
@@ -24,6 +29,12 @@ const STEPS = [
 
 /* ── API ─────────────────────────────────────────────────────────────────── */
 async function plotBooks(file, signal) {
+  if (USE_MOCK) {
+    // Simulated request: no network, no token cost, same plot every time.
+    // Brief delay so the stepped loader is still visible while developing.
+    await new Promise(r => setTimeout(r, 1600))
+    return SAMPLE_PLOT
+  }
   const form = new FormData()
   form.append('file', file)
   const res = await fetch('/api/books/plot', { method: 'POST', body: form, signal })
@@ -42,6 +53,12 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
   const canvasRef = useRef(null)
   const wrapRef = useRef(null)
   const [hover, setHover] = useState(null) // { point, sx, sy }
+  // Layer visibility — only "read" is shown initially; the rest toggle on via
+  // the legend. A ref mirror lets the rAF draw loop read it without re-subscribing.
+  const [visible, setVisible] = useState({ read: true, want: false, new: false, familiar: false })
+  const visibleRef = useRef(visible)
+  useEffect(() => { visibleRef.current = visible }, [visible])
+  const toggleLayer = (k) => setVisible(v => ({ ...v, [k]: !v[k] }))
   const reduceMotion = useMemo(
     () => typeof window !== 'undefined' &&
       !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
@@ -68,7 +85,100 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
     return out
   }, [data])
 
-  const view = useRef({ scale: 1, panX: 0, panY: 0 })
+  // Separation cues, derived once in world space (projected to screen each frame):
+  //  • clusters → soft nebula halos behind each detected group of read books
+  //  • links    → constellation lines between near-neighbour read books
+  //  • orbits   → each recommendation orbits the read book that inspired it
+  const structure = useMemo(() => {
+    const readPts = points.filter(p => p.layer === 'read')
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
+    if (readPts.length < 2) return { clusters: [], links: [], orbits: new Map() }
+
+    // typical nearest-neighbour distance → thresholds that adapt to any data scale
+    const nn = readPts.map(a => {
+      let m = Infinity
+      for (const b of readPts) if (b !== a) m = Math.min(m, dist(a, b))
+      return m
+    }).sort((a, b) => a - b)
+    const mnn = nn[Math.floor(nn.length / 2)] || 1
+    const linkT = mnn * 2.4
+    const clusterT = mnn * 3.4
+
+    // single-linkage clustering via union-find
+    const parent = readPts.map((_, i) => i)
+    const find = i => { while (parent[i] !== i) { parent[i] = parent[parent[i]]; i = parent[i] } return i }
+    for (let i = 0; i < readPts.length; i++)
+      for (let j = i + 1; j < readPts.length; j++)
+        if (dist(readPts[i], readPts[j]) <= clusterT) parent[find(i)] = find(j)
+
+    const groups = new Map()
+    readPts.forEach((p, i) => {
+      const r = find(i)
+      if (!groups.has(r)) groups.set(r, [])
+      groups.get(r).push(p)
+    })
+
+    const PALETTE = [
+      { r: 150, g: 110, b: 255 }, { r: 95, g: 145, b: 255 }, { r: 230, g: 120, b: 210 },
+      { r: 95, g: 200, b: 210 }, { r: 180, g: 140, b: 255 }, { r: 130, g: 120, b: 235 },
+    ]
+    let ci = 0
+    const clusters = []
+    for (const members of groups.values()) {
+      if (members.length < 3) continue // lone outliers get no halo
+      clusters.push({ members, rgb: PALETTE[ci % PALETTE.length] })
+      ci++
+    }
+
+    // constellation links: each read book to its ≤3 nearest neighbours within linkT
+    const seen = new Set()
+    const links = []
+    readPts.forEach((a, i) => {
+      readPts
+        .map((b, j) => ({ b, j, d: dist(a, b) }))
+        .filter(o => o.j !== i && o.d <= linkT)
+        .sort((x, y) => x.d - y.d)
+        .slice(0, 3)
+        .forEach(({ b, j }) => {
+          const key = i < j ? `${i}-${j}` : `${j}-${i}`
+          if (seen.has(key)) return
+          seen.add(key)
+          links.push([a, b])
+        })
+    })
+
+    // orbits: each recommendation becomes a planet circling the read book named
+    // in because_you_read. Multiple recs sharing a book get stacked orbit radii.
+    const norm = s => (s || '').trim().toLowerCase()
+    const byTitle = new Map(readPts.map(p => [norm(p.title), p]))
+    const usedRadii = new Map() // src.key → how many planets already assigned
+    const orbits = new Map()
+    for (const p of points) {
+      if (p.layer !== 'new' && p.layer !== 'familiar') continue
+      const src = byTitle.get(norm(p.because_you_read))
+      if (!src) continue
+      const idx = usedRadii.get(src.key) || 0
+      usedRadii.set(src.key, idx + 1)
+      const radius = 20 + idx * 11           // screen px; stacked rings per book
+      orbits.set(p.key, {
+        src,
+        layer: p.layer,
+        radius,
+        base: p.phase,                       // deterministic-ish start angle
+        speed: 0.55 * (24 / radius),         // inner planets sweep faster
+        dir: idx % 2 === 0 ? 1 : -1,         // alternate orbit direction
+      })
+    }
+
+    return { clusters, links, orbits }
+  }, [points])
+
+  // Anisotropic fill-fit: the data box is mapped to (almost) the whole canvas so
+  // there's no dead space, and clusters spread out to read as distinct groups.
+  // `z` is a uniform zoom multiplier on top (z >= 1 → can't zoom out past the fit).
+  const view = useRef({ z: 1, panX: 0, panY: 0 })
+  const baseScale = useRef({ x: 1, y: 1 })
+  const dataRange = useRef({ x: 1, y: 1 })
   const center = useRef({ x: 0, y: 0 })
   const dragging = useRef(null)
   const selectedRef = useRef(selectedKey)
@@ -102,23 +212,35 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
 
   const fitView = useCallback((W, H) => {
     if (!points.length) return
+    // Frame to the read books (the always-on base layer); recommendations live
+    // in the same coordinate neighbourhood so they stay reachable when toggled on.
+    const frame = points.filter(p => p.layer === 'read')
+    const src = frame.length ? frame : points
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-    for (const p of points) {
+    for (const p of src) {
       if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x
       if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y
     }
     center.current = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
     const rangeX = Math.max(maxX - minX, 1e-3)
     const rangeY = Math.max(maxY - minY, 1e-3)
-    const pad = 0.16
-    const scale = Math.min(W * (1 - pad) / rangeX, H * (1 - pad) / rangeY)
-    view.current = { scale, panX: 0, panY: 0 }
+    const pad = 0.12
+    let sx = W * (1 - pad) / rangeX
+    let sy = H * (1 - pad) / rangeY
+    // cap the stretch so data never gets wildly distorted (e.g. a near-1D shelf)
+    const cap = 2.2
+    if (sx > sy * cap) sx = sy * cap
+    else if (sy > sx * cap) sy = sx * cap
+    baseScale.current = { x: sx, y: sy }
+    dataRange.current = { x: rangeX, y: rangeY }
+    view.current = { z: 1, panX: 0, panY: 0 }
   }, [points])
 
   const worldToScreen = useCallback((wx, wy, W, H) => {
-    const { scale, panX, panY } = view.current
+    const { z, panX, panY } = view.current
     const c = center.current
-    return [(wx - c.x) * scale + W / 2 + panX, -(wy - c.y) * scale + H / 2 + panY]
+    const bx = baseScale.current.x * z, by = baseScale.current.y * z
+    return [(wx - c.x) * bx + W / 2 + panX, -(wy - c.y) * by + H / 2 + panY]
   }, [])
 
   useEffect(() => {
@@ -148,7 +270,19 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
         phase: Math.random() * Math.PI * 2,
         twk: Math.random() * 1.5 + 0.5,
       }))
-      if (!view.current.scale || view.current.scale === 1) fitView(W, H)
+      fitView(W, H)
+    }
+
+    // Screen position of a point. Recommendations orbit their source book; every
+    // other point uses its UMAP coordinate. `time` (seconds) drives the orbit.
+    const screenPos = (p, time) => {
+      const o = structure.orbits.get(p.key)
+      if (o) {
+        const [sx, sy] = worldToScreen(o.src.x, o.src.y, W, H)
+        const ang = o.base + o.dir * (reduceMotion ? 0 : time) * o.speed
+        return [sx + Math.cos(ang) * o.radius, sy + Math.sin(ang) * o.radius]
+      }
+      return worldToScreen(p.x, p.y, W, H)
     }
 
     const draw = (t) => {
@@ -162,6 +296,28 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       ctx.fillRect(0, 0, W, H)
 
       ctx.globalCompositeOperation = 'lighter'
+      ctx.globalAlpha = 1
+
+      // cluster halos — soft nebulae behind each detected group of read books
+      if (visibleRef.current.read) {
+        for (const cl of structure.clusters) {
+          const pts = cl.members.map(m => worldToScreen(m.x, m.y, W, H))
+          let cx = 0, cy = 0
+          for (const [x, y] of pts) { cx += x; cy += y }
+          cx /= pts.length; cy /= pts.length
+          let rad = 0
+          for (const [x, y] of pts) rad = Math.max(rad, Math.hypot(x - cx, y - cy))
+          rad = rad * 1.55 + 40
+          const { r, g, b } = cl.rgb
+          const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad)
+          grd.addColorStop(0, `rgba(${r},${g},${b},0.17)`)
+          grd.addColorStop(0.5, `rgba(${r},${g},${b},0.07)`)
+          grd.addColorStop(1, `rgba(${r},${g},${b},0)`)
+          ctx.fillStyle = grd
+          ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2); ctx.fill()
+        }
+      }
+
       // background stars
       for (const s of bgStars.current) {
         const tw = reduceMotion ? 1 : 0.55 + 0.45 * Math.sin(time * s.twk + s.phase)
@@ -169,13 +325,39 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
         ctx.globalAlpha = s.a * tw
         ctx.drawImage(sprites._white, s.x - d, s.y - d, d * 2, d * 2)
       }
+      ctx.globalAlpha = 1
 
-      // data points — glow sprites
+      // constellation lines — thin threads between near-neighbour read books
+      if (visibleRef.current.read && structure.links.length) {
+        ctx.strokeStyle = 'rgba(170,150,255,0.13)'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        for (const [a, b] of structure.links) {
+          const [ax, ay] = worldToScreen(a.x, a.y, W, H)
+          const [bx, by] = worldToScreen(b.x, b.y, W, H)
+          ctx.moveTo(ax, ay); ctx.lineTo(bx, by)
+        }
+        ctx.stroke()
+      }
+
+      // orbital paths — faint ring each recommendation-planet travels around its book
+      for (const o of structure.orbits.values()) {
+        if (!visibleRef.current[o.layer]) continue
+        const [sx, sy] = worldToScreen(o.src.x, o.src.y, W, H)
+        const { r, g, b } = LAYERS[o.layer].rgb
+        ctx.strokeStyle = `rgba(${r},${g},${b},0.16)`
+        ctx.lineWidth = 1
+        ctx.beginPath(); ctx.arc(sx, sy, o.radius, 0, Math.PI * 2); ctx.stroke()
+      }
+
+      // data points — glow sprites (recommendations render as small planets)
       for (const p of points) {
-        const [sx, sy] = worldToScreen(p.x, p.y, W, H)
+        if (!visibleRef.current[p.layer]) continue
+        const isRec = p.layer === 'new' || p.layer === 'familiar'
+        const [sx, sy] = screenPos(p, time)
         if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
         const tw = reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(time * 1.4 + p.phase)
-        const d = p.size * 3.4
+        const d = (isRec ? 4.4 : p.size) * (isRec ? 2.3 : 2.6)
         ctx.globalAlpha = tw
         ctx.drawImage(sprites[p.layer], sx - d, sy - d, d * 2, d * 2)
       }
@@ -183,42 +365,48 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       ctx.globalAlpha = 1
       ctx.globalCompositeOperation = 'source-over'
 
-      // rings for recommendation layers + hover/selected emphasis
+      // hover / selected emphasis ring
       for (const p of points) {
-        const meta = LAYERS[p.layer]
-        const [sx, sy] = worldToScreen(p.x, p.y, W, H)
-        if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
-        const { r, g, b } = meta.rgb
-        if (meta.ring) {
-          ctx.beginPath()
-          ctx.arc(sx, sy, p.size * 1.5, 0, Math.PI * 2)
-          ctx.strokeStyle = `rgba(${r},${g},${b},0.8)`
-          ctx.lineWidth = 1.4
-          ctx.stroke()
-        }
+        if (!visibleRef.current[p.layer]) continue
         const isSel = selectedRef.current === p.key
         const isHov = hoverRef.current === p.key
-        if (isSel || isHov) {
-          ctx.beginPath()
-          ctx.arc(sx, sy, p.size * 2 + 4, 0, Math.PI * 2)
-          ctx.strokeStyle = isSel ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)'
-          ctx.lineWidth = isSel ? 2 : 1.2
-          ctx.stroke()
-        }
+        if (!isSel && !isHov) continue
+        const isRec = p.layer === 'new' || p.layer === 'familiar'
+        const [sx, sy] = screenPos(p, time)
+        if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
+        ctx.beginPath()
+        ctx.arc(sx, sy, isRec ? 8 : p.size * 2 + 4, 0, Math.PI * 2)
+        ctx.strokeStyle = isSel ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.5)'
+        ctx.lineWidth = isSel ? 2 : 1.2
+        ctx.stroke()
       }
 
       raf = requestAnimationFrame(draw)
+    }
+
+    // Keep the (filled) data box covering the viewport — no dragging into the void.
+    // At the initial zoom the content is locked centred; zoomed in, pan is bounded.
+    const clampPan = () => {
+      const v = view.current
+      const halfW = (dataRange.current.x / 2) * baseScale.current.x * v.z
+      const halfH = (dataRange.current.y / 2) * baseScale.current.y * v.z
+      const limX = halfW - W / 2, limY = halfH - H / 2
+      v.panX = limX <= 0 ? 0 : Math.max(-limX, Math.min(limX, v.panX))
+      v.panY = limY <= 0 ? 0 : Math.max(-limY, Math.min(limY, v.panY))
     }
 
     // hover tracked in a ref so the draw loop sees it without re-subscribing
     const hoverRef = { current: null }
 
     const pickPoint = (mx, my) => {
+      const time = performance.now() / 1000
       let best = null, bestD = Infinity
       for (const p of points) {
-        const [sx, sy] = worldToScreen(p.x, p.y, W, H)
+        if (!visibleRef.current[p.layer]) continue
+        const isRec = p.layer === 'new' || p.layer === 'familiar'
+        const [sx, sy] = screenPos(p, time)
         const d = Math.hypot(sx - mx, sy - my)
-        const hit = p.size * 1.8 + 6
+        const hit = isRec ? 11 : p.size * 1.8 + 6
         if (d < hit && d < bestD) { bestD = d; best = { p, sx, sy } }
       }
       return best
@@ -231,6 +419,7 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
         view.current.panX += mx - dragging.current.x
         view.current.panY += my - dragging.current.y
         dragging.current = { x: mx, y: my }
+        clampPan()
         return
       }
       const found = pickPoint(mx, my)
@@ -253,12 +442,16 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       const rect = canvas.getBoundingClientRect()
       const mx = e.clientX - rect.left, my = e.clientY - rect.top
       const v = view.current, c = center.current
-      const wx = (mx - W / 2 - v.panX) / v.scale + c.x
-      const wy = -(my - H / 2 - v.panY) / v.scale + c.y
+      const bx = baseScale.current.x * v.z, by = baseScale.current.y * v.z
+      const wx = (mx - W / 2 - v.panX) / bx + c.x
+      const wy = -(my - H / 2 - v.panY) / by + c.y
       const factor = Math.exp(-e.deltaY * 0.0014)
-      v.scale = Math.min(Math.max(v.scale * factor, 0.05), 5000)
-      v.panX = mx - W / 2 - (wx - c.x) * v.scale
-      v.panY = my - H / 2 + (wy - c.y) * v.scale
+      // floor at z=1 (the initial fit) — zooming in only, never further out
+      v.z = Math.min(Math.max(v.z * factor, 1), 60)
+      const nbx = baseScale.current.x * v.z, nby = baseScale.current.y * v.z
+      v.panX = mx - W / 2 - (wx - c.x) * nbx
+      v.panY = my - H / 2 + (wy - c.y) * nby
+      clampPan()
     }
 
     const ro = new ResizeObserver(resize)
@@ -284,7 +477,7 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       canvas.removeEventListener('wheel', onWheel)
       if (canvasOutRef) canvasOutRef.current = null
     }
-  }, [points, sprites, worldToScreen, fitView, onSelect, reduceMotion, canvasOutRef])
+  }, [points, structure, sprites, worldToScreen, fitView, onSelect, reduceMotion, canvasOutRef])
 
   const resetView = () => canvasRef.current?._resetView?.()
 
@@ -294,11 +487,18 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
 
       <div className="bg-legend">
         {Object.entries(LAYERS).map(([k, v]) => (
-          <span key={k} className="bg-legend-item">
+          <button
+            key={k}
+            type="button"
+            className={`bg-legend-item${visible[k] ? '' : ' off'}`}
+            onClick={() => toggleLayer(k)}
+            aria-pressed={visible[k]}
+            title={visible[k] ? `Hide ${v.label.toLowerCase()}` : `Show ${v.label.toLowerCase()}`}
+          >
             <i className={`bg-dot${v.ring ? ' ring' : ''}`}
                style={{ '--c': `rgb(${v.rgb.r},${v.rgb.g},${v.rgb.b})` }} />
             {v.label}
-          </span>
+          </button>
         ))}
       </div>
 
@@ -646,12 +846,13 @@ export default function BookGraph() {
   const [selected, setSelected] = useState(null)
   const [step, setStep] = useState(STEPS[0])
   const [pct, setPct] = useState(0)
-  const [health, setHealth] = useState('checking') // checking | ok | warming | unknown
+  const [health, setHealth] = useState(USE_MOCK ? 'ok' : 'checking') // checking | ok | warming | unknown
   const abortRef = useRef(null)
   const liveCanvasRef = useRef(null)
 
   // readiness check (graceful: never hard-block if the endpoint is absent)
   useEffect(() => {
+    if (USE_MOCK) return
     let stop = false
     const check = () => {
       fetch('/api/books/health')

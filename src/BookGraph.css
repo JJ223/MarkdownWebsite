@@ -320,23 +320,41 @@
   top: 12px; left: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 10px 12px;
+  gap: 2px;
+  padding: 8px 8px;
   background: rgba(8, 4, 18, 0.55);
   backdrop-filter: blur(6px);
   border: 1px solid rgba(110, 70, 160, 0.3);
   border-radius: 10px;
   font-size: 0.76rem;
-  color: var(--text-h);
-  pointer-events: none;
 }
-.bg-legend-item { display: flex; align-items: center; gap: 8px; }
+.bg-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 8px;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.13s, opacity 0.13s;
+}
+.bg-legend-item:hover { background: rgba(83, 58, 122, 0.32); }
+.bg-legend-item.off { opacity: 0.42; }
+.bg-legend-item.off:hover { opacity: 0.7; }
 .bg-dot {
   width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
   background: var(--c);
   box-shadow: 0 0 8px var(--c), 0 0 14px var(--c);
 }
 .bg-dot.ring { background: transparent; box-shadow: none; border: 1.5px solid var(--c); }
+.bg-legend-item.off .bg-dot { box-shadow: none; }
+.bg-legend-item.off .bg-dot:not(.ring) { background: transparent; border: 1.5px solid var(--c); }
 
 /* controls */
 .bg-controls {
