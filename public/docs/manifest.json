@@ -9,7 +9,13 @@
       { "slug": "about/skills",     "title": "Skills" }
     ]
   },
-  { "slug": "projects", "title": "Projects" },
+  {
+    "slug": "projects",
+    "title": "Projects",
+    "children": [
+      { "slug": "book-graph", "title": "Book Graph" }
+    ]
+  },
   {
     "slug": "blog",
     "title": "Blog",

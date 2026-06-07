@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkFrontmatter from 'remark-frontmatter'
 import rehypeRaw from 'rehype-raw'
+import BookGraph from './BookGraph.jsx'
 import './App.css'
 
 const jsonCache = {}
@@ -259,6 +260,7 @@ export default function App() {
         <div className="content-body">
           <Routes>
             <Route path="/" element={<MarkdownPage slug="index" />} />
+            <Route path="/book-graph" element={<BookGraph />} />
             <Route path="/*" element={<SlugPage />} />
           </Routes>
         </div>
