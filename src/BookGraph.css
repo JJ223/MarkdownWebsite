@@ -389,6 +389,9 @@
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.55);
   z-index: 5;
 }
+.bg-tooltip.below {
+  transform: translate(-50%, 14px);
+}
 .bg-tooltip strong { color: var(--text-h); font-size: 0.85rem; line-height: 1.25; }
 .bg-tooltip span { color: var(--text); font-size: 0.78rem; }
 .bg-tooltip .bg-tt-sub { color: #c4aee8; font-size: 0.74rem; }

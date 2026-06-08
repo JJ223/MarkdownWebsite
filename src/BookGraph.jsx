@@ -12,10 +12,9 @@ const USE_MOCK = import.meta.env.DEV
    same cosmos, while still being distinguishable by role.
    ──────────────────────────────────────────────────────────────────────── */
 const LAYERS = {
-  read:     { rgb: { r: 170, g: 120, b: 255 }, label: 'Your books',       ring: false },
-  want:     { rgb: { r: 214, g: 184, b: 255 }, label: 'Want to read',     ring: false },
-  new:      { rgb: { r: 120, g: 150, b: 255 }, label: 'New authors',      ring: true  },
-  familiar: { rgb: { r: 232, g: 132, b: 226 }, label: 'Familiar authors', ring: true  },
+  read:        { rgb: { r: 170, g: 120, b: 255 }, label: 'Your books',   ring: false },
+  want:        { rgb: { r: 214, g: 184, b: 255 }, label: 'Want to read', ring: false },
+  suggestions: { rgb: { r: 120, g: 150, b: 255 }, label: 'Suggestions',  ring: true  },
 }
 
 const STEPS = [
@@ -55,7 +54,7 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
   const [hover, setHover] = useState(null) // { point, sx, sy }
   // Layer visibility — only "read" is shown initially; the rest toggle on via
   // the legend. A ref mirror lets the rAF draw loop read it without re-subscribing.
-  const [visible, setVisible] = useState({ read: true, want: false, new: false, familiar: false })
+  const [visible, setVisible] = useState({ read: true, want: false, suggestions: false })
   const visibleRef = useRef(visible)
   useEffect(() => { visibleRef.current = visible }, [visible])
   const toggleLayer = (k) => setVisible(v => ({ ...v, [k]: !v[k] }))
@@ -68,20 +67,21 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
   // Flatten every plottable point into one list sharing the UMAP coord system.
   const points = useMemo(() => {
     const out = []
-    const push = (arr, layer, sizer) =>
+    const push = (arr, layer, sizer, keyPrefix = layer) =>
       (arr || []).forEach((p, i) => {
         if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return
         out.push({
           ...p, layer,
           size: sizer(p),
-          key: `${layer}-${i}`,
+          key: `${keyPrefix}-${i}`,
           phase: Math.random() * Math.PI * 2,
         })
       })
     push(data.read, 'read', p => 7 + 1.8 * (p.rating || 0))
     push(data.want, 'want', () => 8)
-    push(data.recommendations?.new_authors, 'new', () => 7)
-    push(data.recommendations?.familiar_authors, 'familiar', () => 7)
+    // new- and familiar-author picks are bundled into one "Suggestions" layer
+    push(data.recommendations?.new_authors, 'suggestions', () => 7, 'sug-new')
+    push(data.recommendations?.familiar_authors, 'suggestions', () => 7, 'sug-fam')
     return out
   }, [data])
 
@@ -92,7 +92,7 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
   const structure = useMemo(() => {
     const readPts = points.filter(p => p.layer === 'read')
     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
-    if (readPts.length < 2) return { clusters: [], links: [], orbits: new Map() }
+    if (readPts.length < 2) return { clusters: [], links: [] }
 
     // typical nearest-neighbour distance → thresholds that adapt to any data scale
     const nn = readPts.map(a => {
@@ -101,8 +101,8 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       return m
     }).sort((a, b) => a - b)
     const mnn = nn[Math.floor(nn.length / 2)] || 1
-    const linkT = mnn * 2.4
     const clusterT = mnn * 3.4
+    const norm = s => (s || '').trim().toLowerCase()
 
     // single-linkage clustering via union-find
     const parent = readPts.map((_, i) => i)
@@ -130,47 +130,46 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       ci++
     }
 
-    // constellation links: each read book to its ≤3 nearest neighbours within linkT
-    const seen = new Set()
-    const links = []
-    readPts.forEach((a, i) => {
-      readPts
-        .map((b, j) => ({ b, j, d: dist(a, b) }))
-        .filter(o => o.j !== i && o.d <= linkT)
-        .sort((x, y) => x.d - y.d)
-        .slice(0, 3)
-        .forEach(({ b, j }) => {
-          const key = i < j ? `${i}-${j}` : `${j}-${i}`
-          if (seen.has(key)) return
-          seen.add(key)
-          links.push([a, b])
-        })
+    // constellation links: connect read books that share an author — each
+    // author's titles form their own little constellation, nobody else links.
+    const byAuthor = new Map()
+    readPts.forEach(p => {
+      const a = norm(p.author)
+      if (!a) return
+      if (!byAuthor.has(a)) byAuthor.set(a, [])
+      byAuthor.get(a).push(p)
     })
-
-    // orbits: each recommendation becomes a planet circling the read book named
-    // in because_you_read. Multiple recs sharing a book get stacked orbit radii.
-    const norm = s => (s || '').trim().toLowerCase()
-    const byTitle = new Map(readPts.map(p => [norm(p.title), p]))
-    const usedRadii = new Map() // src.key → how many planets already assigned
-    const orbits = new Map()
-    for (const p of points) {
-      if (p.layer !== 'new' && p.layer !== 'familiar') continue
-      const src = byTitle.get(norm(p.because_you_read))
-      if (!src) continue
-      const idx = usedRadii.get(src.key) || 0
-      usedRadii.set(src.key, idx + 1)
-      const radius = 20 + idx * 11           // screen px; stacked rings per book
-      orbits.set(p.key, {
-        src,
-        layer: p.layer,
-        radius,
-        base: p.phase,                       // deterministic-ish start angle
-        speed: 0.55 * (24 / radius),         // inner planets sweep faster
-        dir: idx % 2 === 0 ? 1 : -1,         // alternate orbit direction
-      })
+    // Within each author, draw a minimum spanning tree: every star reaches for its
+    // nearest neighbour first (small branches), then the shortest remaining edges
+    // are added until all of that author's stars hang together as one constellation.
+    // Edges longer than this cap are dropped, so books by the same author that sit
+    // far apart (e.g. in different genre clusters) simply don't get a line — the
+    // author may end up as a couple of small constellations rather than one stretched
+    // across the whole map.
+    const maxLinkT = mnn * 4.5
+    const links = []
+    for (const group of byAuthor.values()) {
+      if (group.length < 2) continue
+      const edges = []
+      for (let i = 0; i < group.length; i++)
+        for (let j = i + 1; j < group.length; j++)
+          edges.push({ i, j, d: dist(group[i], group[j]) })
+      edges.sort((a, b) => a.d - b.d)
+      const par = group.map((_, i) => i)
+      const find = i => { while (par[i] !== i) { par[i] = par[par[i]]; i = par[i] } return i }
+      let added = 0
+      for (const { i, j, d } of edges) {
+        if (added === group.length - 1) break
+        if (d > maxLinkT) break // edges are sorted, so everything beyond here is too far
+        const ri = find(i), rj = find(j)
+        if (ri === rj) continue // would close a loop — skip
+        par[ri] = rj
+        links.push([group[i], group[j]])
+        added++
+      }
     }
 
-    return { clusters, links, orbits }
+    return { clusters, links }
   }, [points])
 
   // Anisotropic fill-fit: the data box is mapped to (almost) the whole canvas so
@@ -224,11 +223,13 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
     center.current = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 }
     const rangeX = Math.max(maxX - minX, 1e-3)
     const rangeY = Math.max(maxY - minY, 1e-3)
-    const pad = 0.12
+    // Generous padding keeps every star — including the corner ones — comfortably
+    // inside the frame, so they're easy to reach and their tooltips never clip.
+    const pad = 0.22
     let sx = W * (1 - pad) / rangeX
     let sy = H * (1 - pad) / rangeY
     // cap the stretch so data never gets wildly distorted (e.g. a near-1D shelf)
-    const cap = 2.2
+    const cap = 1.8
     if (sx > sy * cap) sx = sy * cap
     else if (sy > sx * cap) sy = sx * cap
     baseScale.current = { x: sx, y: sy }
@@ -273,17 +274,9 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       fitView(W, H)
     }
 
-    // Screen position of a point. Recommendations orbit their source book; every
-    // other point uses its UMAP coordinate. `time` (seconds) drives the orbit.
-    const screenPos = (p, time) => {
-      const o = structure.orbits.get(p.key)
-      if (o) {
-        const [sx, sy] = worldToScreen(o.src.x, o.src.y, W, H)
-        const ang = o.base + o.dir * (reduceMotion ? 0 : time) * o.speed
-        return [sx + Math.cos(ang) * o.radius, sy + Math.sin(ang) * o.radius]
-      }
-      return worldToScreen(p.x, p.y, W, H)
-    }
+    // Screen position of a point — every point (recommendations included) sits at
+    // its own UMAP coordinate.
+    const screenPos = (p) => worldToScreen(p.x, p.y, W, H)
 
     const draw = (t) => {
       const time = t / 1000
@@ -340,25 +333,21 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
         ctx.stroke()
       }
 
-      // orbital paths — faint ring each recommendation-planet travels around its book
-      for (const o of structure.orbits.values()) {
-        if (!visibleRef.current[o.layer]) continue
-        const [sx, sy] = worldToScreen(o.src.x, o.src.y, W, H)
-        const { r, g, b } = LAYERS[o.layer].rgb
-        ctx.strokeStyle = `rgba(${r},${g},${b},0.16)`
-        ctx.lineWidth = 1
-        ctx.beginPath(); ctx.arc(sx, sy, o.radius, 0, Math.PI * 2); ctx.stroke()
-      }
-
       // data points — glow sprites (recommendations render as small planets)
+      // Glow size tracks the zoom: it grows as you zoom in (so stars don't look
+      // tiny once the map spreads out) and shrinks when you zoom out past the fit
+      // (so crowded stars stay distinct instead of merging into one bloom).
+      const zoom = view.current.z
+      const sizeFade = Math.max(0.5, Math.min(zoom, 2.6))
+      const dimFade = 0.78 * (0.55 + 0.45 * Math.min(zoom, 1)) // dim a bit overall; further when zoomed out
       for (const p of points) {
         if (!visibleRef.current[p.layer]) continue
-        const isRec = p.layer === 'new' || p.layer === 'familiar'
-        const [sx, sy] = screenPos(p, time)
+        const isRec = p.layer === 'suggestions'
+        const [sx, sy] = screenPos(p)
         if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
         const tw = reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(time * 1.4 + p.phase)
-        const d = (isRec ? 4.4 : p.size) * (isRec ? 2.3 : 2.6)
-        ctx.globalAlpha = tw
+        const d = (isRec ? 4.4 : p.size) * (isRec ? 2.3 : 2.6) * sizeFade
+        ctx.globalAlpha = tw * dimFade
         ctx.drawImage(sprites[p.layer], sx - d, sy - d, d * 2, d * 2)
       }
 
@@ -371,8 +360,8 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
         const isSel = selectedRef.current === p.key
         const isHov = hoverRef.current === p.key
         if (!isSel && !isHov) continue
-        const isRec = p.layer === 'new' || p.layer === 'familiar'
-        const [sx, sy] = screenPos(p, time)
+        const isRec = p.layer === 'suggestions'
+        const [sx, sy] = screenPos(p)
         if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
         ctx.beginPath()
         ctx.arc(sx, sy, isRec ? 8 : p.size * 2 + 4, 0, Math.PI * 2)
@@ -384,27 +373,26 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       raf = requestAnimationFrame(draw)
     }
 
-    // Keep the (filled) data box covering the viewport — no dragging into the void.
-    // At the initial zoom the content is locked centred; zoomed in, pan is bounded.
+    // Bound the pan so the content can't be dragged completely off, but allow
+    // dragging any edge/corner star all the way to the viewport centre — the limit
+    // is the data half-extent, so corners are always reachable at every zoom.
     const clampPan = () => {
       const v = view.current
       const halfW = (dataRange.current.x / 2) * baseScale.current.x * v.z
       const halfH = (dataRange.current.y / 2) * baseScale.current.y * v.z
-      const limX = halfW - W / 2, limY = halfH - H / 2
-      v.panX = limX <= 0 ? 0 : Math.max(-limX, Math.min(limX, v.panX))
-      v.panY = limY <= 0 ? 0 : Math.max(-limY, Math.min(limY, v.panY))
+      v.panX = Math.max(-halfW, Math.min(halfW, v.panX))
+      v.panY = Math.max(-halfH, Math.min(halfH, v.panY))
     }
 
     // hover tracked in a ref so the draw loop sees it without re-subscribing
     const hoverRef = { current: null }
 
     const pickPoint = (mx, my) => {
-      const time = performance.now() / 1000
       let best = null, bestD = Infinity
       for (const p of points) {
         if (!visibleRef.current[p.layer]) continue
-        const isRec = p.layer === 'new' || p.layer === 'familiar'
-        const [sx, sy] = screenPos(p, time)
+        const isRec = p.layer === 'suggestions'
+        const [sx, sy] = screenPos(p)
         const d = Math.hypot(sx - mx, sy - my)
         const hit = isRec ? 11 : p.size * 1.8 + 6
         if (d < hit && d < bestD) { bestD = d; best = { p, sx, sy } }
@@ -425,7 +413,7 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       const found = pickPoint(mx, my)
       hoverRef.current = found ? found.p.key : null
       canvas.style.cursor = found ? 'pointer' : 'grab'
-      setHover(found ? { point: found.p, sx: found.sx, sy: found.sy } : null)
+      setHover(found ? { point: found.p, sx: found.sx, sy: found.sy, W } : null)
     }
     const onDown = (e) => {
       const rect = canvas.getBoundingClientRect()
@@ -446,8 +434,9 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
       const wx = (mx - W / 2 - v.panX) / bx + c.x
       const wy = -(my - H / 2 - v.panY) / by + c.y
       const factor = Math.exp(-e.deltaY * 0.0014)
-      // floor at z=1 (the initial fit) — zooming in only, never further out
-      v.z = Math.min(Math.max(v.z * factor, 1), 60)
+      // allow zooming a little past the initial fit (z<1) so corner stars get extra
+      // breathing room, while still capping how far out you can go
+      v.z = Math.min(Math.max(v.z * factor, 0.6), 60)
       const nbx = baseScale.current.x * v.z, nby = baseScale.current.y * v.z
       v.panX = mx - W / 2 - (wx - c.x) * nbx
       v.panY = my - H / 2 + (wy - c.y) * nby
@@ -507,8 +496,18 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
         <span className="bg-hint">scroll to zoom · drag to pan</span>
       </div>
 
-      {hover && (
-        <div className="bg-tooltip" style={{ left: hover.sx, top: hover.sy }}>
+      {hover && (() => {
+        // Keep the tooltip inside the map: clamp it horizontally so it can't spill
+        // past the left/right edge, and flip it below the star when it's too near
+        // the top to fit above.
+        const W = hover.W ?? 0
+        const flipBelow = hover.sy < 96
+        const left = W ? Math.max(124, Math.min(W - 124, hover.sx)) : hover.sx
+        return (
+        <div
+          className={`bg-tooltip${flipBelow ? ' below' : ''}`}
+          style={{ left, top: hover.sy }}
+        >
           <strong>{hover.point.title}</strong>
           <span>{hover.point.author}</span>
           {hover.point.layer === 'read' && (
@@ -517,11 +516,12 @@ function StarMap({ data, onSelect, selectedKey, canvasOutRef }) {
             </span>
           )}
           {hover.point.layer === 'want' && <span className="bg-tt-sub">want to read</span>}
-          {(hover.point.layer === 'new' || hover.point.layer === 'familiar') && (
+          {(hover.point.layer === 'suggestions') && (
             <span className="bg-tt-sub">match {hover.point.score?.toFixed(2)}</span>
           )}
         </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
@@ -540,11 +540,10 @@ function DetailPanel({ point, onClose }) {
       {point.layer === 'read' && (
         <dl>
           <div><dt>Rating</dt><dd>{point.rating ? '★'.repeat(point.rating) + '☆'.repeat(5 - point.rating) : 'unrated'}</dd></div>
-          <div><dt>Date read</dt><dd>{point.date_read && point.date_read !== 'unknown' ? point.date_read : '—'}</dd></div>
         </dl>
       )}
       {point.layer === 'want' && <p className="bg-detail-note">On your to-read shelf.</p>}
-      {(point.layer === 'new' || point.layer === 'familiar') && (
+      {(point.layer === 'suggestions') && (
         <dl>
           {point.genre && <div><dt>Genre</dt><dd>{point.genre}</dd></div>}
           <div><dt>Match</dt><dd>{(point.score * 100).toFixed(0)}%</dd></div>
@@ -849,6 +848,17 @@ export default function BookGraph() {
   const [health, setHealth] = useState(USE_MOCK ? 'ok' : 'checking') // checking | ok | warming | unknown
   const abortRef = useRef(null)
   const liveCanvasRef = useRef(null)
+  const stageRef = useRef(null)
+
+  // When the map finishes loading, bring it to the centre of the screen so the
+  // user lands right on their star-map instead of the header.
+  useEffect(() => {
+    if (phase !== 'done') return
+    const id = requestAnimationFrame(() =>
+      stageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    )
+    return () => cancelAnimationFrame(id)
+  }, [phase])
 
   // readiness check (graceful: never hard-block if the endpoint is absent)
   useEffect(() => {
@@ -964,7 +974,7 @@ export default function BookGraph() {
             </div>
           )}
 
-          <div className="bg-stage">
+          <div className="bg-stage" ref={stageRef}>
             <StarMap data={data} onSelect={setSelected} selectedKey={selected?.key} canvasOutRef={liveCanvasRef} />
             {selected && <DetailPanel point={selected} onClose={() => setSelected(null)} />}
           </div>

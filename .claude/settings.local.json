@@ -57,7 +57,9 @@
       "Bash(grep -v \"^$\")",
       "mcp__plugin_playwright_playwright__browser_console_messages",
       "mcp__plugin_playwright_playwright__browser_file_upload",
-      "Bash(taskkill //F //IM node.exe)"
+      "Bash(taskkill //F //IM node.exe)",
+      "Bash(npx vite *)",
+      "Bash(python -c \"import json;d=json.load\\(open\\('testMap/20260607T223833Z_fa6b9fc3.json'\\)\\);print\\('top keys:',list\\(d.keys\\(\\)\\)\\);print\\('response keys:',list\\(d['response'].keys\\(\\)\\)\\);print\\('response.meta:',d['response'].get\\('meta'\\)\\)\")"
     ]
   }
 }
