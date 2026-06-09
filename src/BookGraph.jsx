@@ -182,7 +182,7 @@ function StarMap({ data, canvasOutRef }) {
       const d = Math.hypot(p.x - src.x, p.y - src.y)
       const r = Math.max(mnn * 0.5, Math.min(d || mnn, mnn * 1.25))
       const dir = i % 2 ? 1 : -1
-      orbits.set(p.key, { sx: src.x, sy: src.y, r, phase: p.phase, speed: dir * (0.1 + (i % 3) * 0.02), author: norm(src.author) })
+      orbits.set(p.key, { sx: src.x, sy: src.y, r, phase: p.phase, speed: dir * (0.1 + (i % 3) * 0.02), author: norm(src.author), srcKey: src.key })
     })
 
     return { clusters, links, orbits }
@@ -299,7 +299,7 @@ function StarMap({ data, canvasOutRef }) {
 
     // Constellation-focus animation state (persists across frames).
     const FOCUS_FADE = 0.75 // seconds for the dimming to fade fully in/out
-    let focusAmt = 0, prevT = 0, lastAuthor = null, lastKey = null
+    let focusAmt = 0, prevT = 0, lastAuthor = null, lastKeys = null
 
     // Per-orbit angle, integrated each frame so we can freeze the hovered
     // recommendation in place (and resume it without a jump).
@@ -325,15 +325,14 @@ function StarMap({ data, canvasOutRef }) {
       // Constellation focus: hovering a read star highlights its author's
       // constellation; hovering a recommendation focuses the saga it sprang
       // from. Everything else dims. null when not focusing.
-      // A hovered want-to-read star has no saga, so it focuses just itself.
+      // Hovering a read star focuses its saga; a suggestion focuses just the
+      // book it came from (plus itself); a want-to-read star focuses itself.
       const hp = hoverRef.current ? keyMap.get(hoverRef.current) : null
-      let focusAuthor = null, focusKey = null
+      const hoverOrbit = hp && hp.layer === 'suggestions' ? structure.orbits.get(hp.key) : null
+      let focusAuthor = null, focusKeys = null
       if (hp && hp.layer === 'read' && hp.author) focusAuthor = norm(hp.author)
-      else if (hp && hp.layer === 'suggestions') {
-        const o = structure.orbits.get(hp.key)
-        if (o) focusAuthor = o.author
-      }
-      else if (hp && hp.layer === 'want') focusKey = hp.key
+      else if (hoverOrbit) focusKeys = new Set([hp.key, hoverOrbit.srcKey])
+      else if (hp && hp.layer === 'want') focusKeys = new Set([hp.key])
       // Ease the focus amount toward its target over ~1s so the dimming fades in
       // and out smoothly instead of snapping. `lastAuthor` keeps the grouping
       // known while fading back out after the cursor leaves.
@@ -346,14 +345,14 @@ function StarMap({ data, canvasOutRef }) {
           orbitAng.set(k, orbitAng.get(k) + dt * orb.speed)
         }
       }
-      const target = (focusAuthor || focusKey) ? 1 : 0
+      const target = (focusAuthor || focusKeys) ? 1 : 0
       const step = dt / FOCUS_FADE // FOCUS_FADE seconds for a full transition
       focusAmt += Math.max(-step, Math.min(step, target - focusAmt))
-      if (focusAuthor) { lastAuthor = focusAuthor; lastKey = null }
-      else if (focusKey) { lastKey = focusKey; lastAuthor = null }
+      if (focusAuthor) { lastAuthor = focusAuthor; lastKeys = null }
+      else if (focusKeys) { lastKeys = focusKeys; lastAuthor = null }
       const active = focusAmt > 0.001
       const fAuthor = focusAuthor || (active ? lastAuthor : null)
-      const fKey = focusKey || (active ? lastKey : null)
+      const fKeys = focusKeys || (active ? lastKeys : null)
       // deep-space backdrop
       const bg = ctx.createRadialGradient(W * 0.4, H * 0.35, 0, W * 0.4, H * 0.35, Math.max(W, H) * 0.8)
       bg.addColorStop(0, '#140d24')
@@ -409,7 +408,7 @@ function StarMap({ data, canvasOutRef }) {
           }
           ctx.stroke()
         }
-        if ((!fAuthor && !fKey) || focusAmt < 0.001) {
+        if ((!fAuthor && !fKeys) || focusAmt < 0.001) {
           stroke(null, 'rgba(190,170,255,0.42)', 1.9)
         } else {
           const lerp = (a, b) => a + (b - a) * focusAmt
@@ -417,6 +416,17 @@ function StarMap({ data, canvasOutRef }) {
           stroke(a => norm(a.author) !== fAuthor, `rgba(178,158,255,${lerp(0.42, 0.08)})`, lerp(1.9, 1.2))
           if (fAuthor) stroke(a => norm(a.author) === fAuthor, `rgba(210,194,255,${lerp(0.42, 0.85)})`, lerp(1.9, 2.6))
         }
+      }
+
+      // orbit outline — while hovering a recommendation, trace the circular path
+      // it travels around its source book. (The screen path is a true circle, so
+      // its radius is the world radius times the x base-scale.)
+      if (hoverOrbit && visibleRef.current.suggestions) {
+        const [cx, cy] = worldToScreen(hoverOrbit.sx, hoverOrbit.sy, W, H)
+        const R = hoverOrbit.r * baseScale.current.x * view.current.z
+        ctx.strokeStyle = `rgba(150,170,255,${0.5 * focusAmt})`
+        ctx.lineWidth = 1.2
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke()
       }
 
       // data points — a soft coloured halo (sprite) with a crisp solid core on
@@ -436,11 +446,8 @@ function StarMap({ data, canvasOutRef }) {
         const tw = reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(time * 1.4 + p.phase)
         // under focus, fade stars that aren't part of the hovered author's
         // constellation — eased via focusAmt so the dimming animates over ~1s
-        const orb = structure.orbits.get(p.key)
-        const inFocus = (fAuthor && (
-          (p.layer === 'read' && norm(p.author) === fAuthor) ||
-          (p.layer === 'suggestions' && orb && orb.author === fAuthor) // recs of the focused saga stay lit
-        )) || (fKey && p.key === fKey) // a focused want-to-read star lights only itself
+        const inFocus = (fAuthor && p.layer === 'read' && norm(p.author) === fAuthor) ||
+          (fKeys && fKeys.has(p.key)) // a hovered suggestion lights itself + its source book
         const focusMul = inFocus ? 1 : 1 - 0.74 * focusAmt
         const { r, g, b } = LAYERS[p.layer].rgb
 
