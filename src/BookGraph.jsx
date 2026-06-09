@@ -861,19 +861,15 @@ function ShareControls({ canvasRef, data }) {
     setOpen(false)
   })
 
-  const onLinkedIn = () => {
+  const onLinkedIn = () => withBusy(async () => {
+    const blob = await buildBlob()
+    let hint = ''
+    if (blob) { try { await copyBlob(blob); hint = ' Image copied — paste it into the post.' } catch { /* paste optional */ } }
     window.open(
       `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}`,
       '_blank', 'noopener,noreferrer'
     )
-    flash('Opening LinkedIn — tip: attach the downloaded image for a richer post.')
-    setOpen(false)
-  }
-
-  const onCopyLink = () => withBusy(async () => {
-    try { await navigator.clipboard.writeText(pageUrl); flash('Page link copied') }
-    catch { flash(pageUrl) }
-    setOpen(false)
+    flash(`Opening LinkedIn.${hint}`); setOpen(false)
   })
 
   const canNative = typeof navigator !== 'undefined' && typeof navigator.canShare === 'function'
@@ -922,11 +918,7 @@ function ShareControls({ canvasRef, data }) {
           </button>
           <button role="menuitem" onClick={onLinkedIn}>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 1 1 0-4.124 2.062 2.062 0 0 1 0 4.124zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
-            Share on LinkedIn<small>shares the page link</small>
-          </button>
-          <button role="menuitem" onClick={onCopyLink}>
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2.83-2.83a5 5 0 0 0-7.07-7.07L11 4.93" /><path d="M14 11a5 5 0 0 0-7.07 0L4.1 13.83a5 5 0 0 0 7.07 7.07L13 19.07" /></svg>
-            Copy page link
+            Share on LinkedIn<small>image copied to paste in</small>
           </button>
         </div>
       )}

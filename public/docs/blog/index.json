@@ -1,5 +1,20 @@
 [
   {
+    "slug": "blog/blog-book-plot",
+    "title": "Mapping my bookshelf: building Book Plot",
+    "date": "2026-06-09",
+    "description": "How I turned my Goodreads export into a self-hosted, interactive map of my reading taste — embeddings, UMAP, recommendations, and all the parts that didn't work the first time.",
+    "tags": [
+      "Machine Learning",
+      "Embeddings",
+      "UMAP",
+      "Self-hosted"
+    ],
+    "org": null,
+    "image": "/images/blog-book-plot.webp",
+    "highlight": false
+  },
+  {
     "slug": "blog/blog-hello-world",
     "title": "Hello World — Why I built this",
     "date": "2026-06-01",
