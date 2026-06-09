@@ -759,7 +759,7 @@ function ShareControls({ canvasRef, data }) {
     toastTimer.current = setTimeout(() => setToast(''), 3600)
   }, [])
 
-  const pageUrl = `${location.origin}${location.pathname}#/book-graph`
+  const pageUrl = `${location.origin}${location.pathname}#/book-plot`
   const shareText = 'I turned my Goodreads history into a galaxy of books with Book Plot'
 
   // Compose the branded share image from the live canvas.
@@ -805,7 +805,7 @@ function ShareControls({ canvasRef, data }) {
   const saveBlob = (blob) => {
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob)
-    a.download = 'book-graph.png'
+    a.download = 'book-plot.png'
     a.click()
     setTimeout(() => URL.revokeObjectURL(a.href), 5000)
   }
@@ -835,7 +835,7 @@ function ShareControls({ canvasRef, data }) {
 
   const onNative = () => withBusy(async () => {
     const blob = await buildBlob(); if (!blob) return
-    const file = new File([blob], 'book-graph.png', { type: 'image/png' })
+    const file = new File([blob], 'book-plot.png', { type: 'image/png' })
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: 'My Book Plot', text: shareText }) }
       catch (e) { if (e.name !== 'AbortError') flash('Sharing cancelled') }

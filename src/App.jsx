@@ -260,7 +260,7 @@ export default function App() {
         <div className="content-body">
           <Routes>
             <Route path="/" element={<MarkdownPage slug="index" />} />
-            <Route path="/book-graph" element={<BookGraph />} />
+            <Route path="/book-plot" element={<BookGraph />} />
             <Route path="/*" element={<SlugPage />} />
           </Routes>
         </div>
