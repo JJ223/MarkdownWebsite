@@ -1,5 +1,20 @@
 [
   {
+    "slug": "blog/blog-book-plot-2",
+    "title": "Book Plot, part two: surviving 4,000-book libraries",
+    "date": "2026-06-10",
+    "description": "BookPlot worked beautifully on my ~70 books and timed out on everyone else's. The fix meant rethinking the whole map — building it once on a 90K-book catalog instead of projecting onto a tiny corpus per request.",
+    "tags": [
+      "Machine Learning",
+      "UMAP",
+      "Performance",
+      "Self-hosted"
+    ],
+    "org": null,
+    "image": "/images/blog-book-plot-2.webp",
+    "highlight": false
+  },
+  {
     "slug": "blog/blog-book-plot",
     "title": "Mapping my bookshelf: building Book Plot",
     "date": "2026-06-09",

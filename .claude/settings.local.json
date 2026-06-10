@@ -59,7 +59,11 @@
       "mcp__plugin_playwright_playwright__browser_file_upload",
       "Bash(taskkill //F //IM node.exe)",
       "Bash(npx vite *)",
-      "Bash(python -c \"import json;d=json.load\\(open\\('testMap/20260607T223833Z_fa6b9fc3.json'\\)\\);print\\('top keys:',list\\(d.keys\\(\\)\\)\\);print\\('response keys:',list\\(d['response'].keys\\(\\)\\)\\);print\\('response.meta:',d['response'].get\\('meta'\\)\\)\")"
+      "Bash(python -c \"import json;d=json.load\\(open\\('testMap/20260607T223833Z_fa6b9fc3.json'\\)\\);print\\('top keys:',list\\(d.keys\\(\\)\\)\\);print\\('response keys:',list\\(d['response'].keys\\(\\)\\)\\);print\\('response.meta:',d['response'].get\\('meta'\\)\\)\")",
+      "Bash(python -c \"import PIL; from PIL import Image; im=Image.open\\('public/images/blog-book-plot-2.jpg'\\); print\\('Pillow', PIL.__version__, im.size, im.mode\\)\")",
+      "Bash(python -m pip install --quiet Pillow)",
+      "Bash(python -c \"from PIL import Image; im=Image.open\\('public/images/blog-book-plot-2.jpg'\\); print\\(im.size, im.mode\\)\")",
+      "Bash(python -c ' *)"
     ]
   }
 }
