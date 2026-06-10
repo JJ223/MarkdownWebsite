@@ -78,11 +78,32 @@ function StarMap({ data, canvasOutRef }) {
         })
       })
     // unrated books size as if they were a 4 (they shouldn't read as tiny specks)
-    push(data.read, 'read', p => 7 + 1.8 * (p.rating || 4))
-    push(data.want, 'want', () => 8)
+    push(data.read, 'read', p => 4 + 1.1 * (p.rating || 4))
+    push(data.want, 'want', () => 6)
     // new- and familiar-author picks are bundled into one "Suggestions" layer
-    push(data.recommendations?.new_authors, 'suggestions', () => 7, 'sug-new')
-    push(data.recommendations?.familiar_authors, 'suggestions', () => 7, 'sug-fam')
+    push(data.recommendations?.new_authors, 'suggestions', () => 5, 'sug-new')
+    push(data.recommendations?.familiar_authors, 'suggestions', () => 5, 'sug-fam')
+
+    // Cosmetic jitter: real exports stack many books on near-identical coords
+    // (e.g. every Harry Potter title lands on one pixel). A small fixed offset —
+    // a fraction of the data range, assigned once per point — fans those stacks
+    // into a readable cluster so each star is individually hoverable. It only
+    // shifts the in-memory render copies (never the source `data`), and because
+    // it's baked in before clustering/links/orbits run, every derived structure
+    // uses these same coords and stays coherent.
+    if (out.length) {
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+      for (const p of out) {
+        if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x
+        if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y
+      }
+      const jx = Math.max(maxX - minX, 1e-3) * 0.01
+      const jy = Math.max(maxY - minY, 1e-3) * 0.01
+      for (const p of out) {
+        p.x += (Math.random() * 2 - 1) * jx
+        p.y += (Math.random() * 2 - 1) * jy
+      }
+    }
     return out
   }, [data])
 
@@ -299,6 +320,11 @@ function StarMap({ data, canvasOutRef }) {
 
     // Constellation-focus animation state (persists across frames).
     const FOCUS_FADE = 0.75 // seconds for the dimming to fade fully in/out
+    // Hover intent: on crowded maps the cursor sweeps over many stars, so engaging
+    // the focus-dim the instant a star is hovered makes the whole map flicker. We
+    // only start dimming once the pointer has rested for HOVER_DELAY seconds.
+    const HOVER_DELAY = 0.25
+    let lastMoveAt = 0
     let focusAmt = 0, prevT = 0, lastAuthor = null, lastKeys = null
 
     // Per-orbit angle, integrated each frame so we can freeze the hovered
@@ -329,10 +355,12 @@ function StarMap({ data, canvasOutRef }) {
       // book it came from (plus itself); a want-to-read star focuses itself.
       const hp = hoverRef.current ? keyMap.get(hoverRef.current) : null
       const hoverOrbit = hp && hp.layer === 'suggestions' ? structure.orbits.get(hp.key) : null
+      // Only focus once the cursor has settled — sweeping past a star never dims.
+      const settled = (time - lastMoveAt) >= HOVER_DELAY
       let focusAuthor = null, focusKeys = null
-      if (hp && hp.layer === 'read' && hp.author) focusAuthor = norm(hp.author)
-      else if (hoverOrbit) focusKeys = new Set([hp.key, hoverOrbit.srcKey])
-      else if (hp && hp.layer === 'want') focusKeys = new Set([hp.key])
+      if (settled && hp && hp.layer === 'read' && hp.author) focusAuthor = norm(hp.author)
+      else if (settled && hoverOrbit) focusKeys = new Set([hp.key, hoverOrbit.srcKey])
+      else if (settled && hp && hp.layer === 'want') focusKeys = new Set([hp.key])
       // Ease the focus amount toward its target over ~1s so the dimming fades in
       // and out smoothly instead of snapping. `lastAuthor` keeps the grouping
       // known while fading back out after the cursor leaves.
@@ -436,7 +464,9 @@ function StarMap({ data, canvasOutRef }) {
       // (so crowded stars stay distinct).
       const zoom = view.current.z
       const sizeFade = Math.max(0.5, Math.min(zoom, 2.6))
-      const dimFade = 0.82 * (0.6 + 0.4 * Math.min(zoom, 1)) // dim a bit overall; further when zoomed out
+      // ~0.5–0.65 per-marker alpha: a lone star stays soft, but overlapping halos
+      // stack into a visibly darker blob, so density reads as density.
+      const dimFade = 0.52 * (0.78 + 0.22 * Math.min(zoom, 1)) // dim a bit overall; further when zoomed out
       const coreFade = Math.max(0.7, Math.min(zoom, 1.8))
       for (const p of points) {
         if (!visibleRef.current[p.layer]) continue
@@ -475,8 +505,8 @@ function StarMap({ data, canvasOutRef }) {
         ctx.drawImage(sprites[p.layer], sx - d, sy - d, d * 2, d * 2)
         // crisp core — bright at the centre, fading to a darker rim for a lit,
         // rounded look rather than a flat disc
-        const cr = (isRec ? 2.9 : p.size * 0.56) * coreFade
-        ctx.globalAlpha = Math.min(1, tw + 0.1) * focusMul
+        const cr = (isRec ? 2.6 : p.size * 0.56) * coreFade
+        ctx.globalAlpha = Math.min(1, tw + 0.1) * 0.72 * focusMul
         const cg = ctx.createRadialGradient(sx, sy, 0, sx, sy, cr)
         cg.addColorStop(0, `rgb(${Math.min(r + 60, 255)},${Math.min(g + 60, 255)},${Math.min(b + 38, 255)})`)
         cg.addColorStop(0.55, `rgb(${Math.min(r + 20, 255)},${Math.min(g + 20, 255)},${Math.min(b + 10, 255)})`)
@@ -533,6 +563,7 @@ function StarMap({ data, canvasOutRef }) {
     }
 
     const onMove = (e) => {
+      lastMoveAt = performance.now() / 1000 // reset the hover-intent timer on every move
       const rect = canvas.getBoundingClientRect()
       const mx = e.clientX - rect.left, my = e.clientY - rect.top
       if (dragging.current) {

@@ -3,11 +3,23 @@
    It lets the Book Graph page be developed and demoed without hitting the real
    API — which costs tokens — and guarantees the same plot every time.
 
-   The sample is the real plot captured under `testMap/` (a saved run of the live
-   API). That file wraps the PlotResponse in a `response` envelope, so we unwrap
-   it here to match the shape the page consumes (`{ read, want, recommendations,
-   meta }`).
+   Every `*.json` under `testMap/` is a saved run of the live API, already in the
+   shape the page consumes (`{ read, want, recommendations, meta }`). They're all
+   loaded eagerly and keyed by filename, so switching maps is a one-line change to
+   SAMPLE below and dropping a new file in `testMap/` registers it automatically.
    ──────────────────────────────────────────────────────────────────────────── */
-import savedRun from '../testMap/20260607T223833Z_fa6b9fc3.json'
 
-export const SAMPLE_PLOT = savedRun.response
+// ── Pick which testMap to plot in dev. Use the filename without `.json`. ──────
+const SAMPLE = 'Mine'
+
+const runs = import.meta.glob('../testMap/*.json', { eager: true, import: 'default' })
+
+// Map "../testMap/Mine.json" → "Mine"
+const byName = Object.fromEntries(
+  Object.entries(runs).map(([path, data]) => [path.match(/([^/]+)\.json$/)[1], data])
+)
+
+export const SAMPLE_NAMES = Object.keys(byName)
+
+export const SAMPLE_PLOT =
+  byName[SAMPLE] ?? byName[SAMPLE_NAMES[0]] // fall back to whatever's there
