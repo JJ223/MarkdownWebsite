@@ -63,7 +63,11 @@
       "Bash(python -c \"import PIL; from PIL import Image; im=Image.open\\('public/images/blog-book-plot-2.jpg'\\); print\\('Pillow', PIL.__version__, im.size, im.mode\\)\")",
       "Bash(python -m pip install --quiet Pillow)",
       "Bash(python -c \"from PIL import Image; im=Image.open\\('public/images/blog-book-plot-2.jpg'\\); print\\(im.size, im.mode\\)\")",
-      "Bash(python -c ' *)"
+      "Bash(python -c ' *)",
+      "Bash(curl -s -o testMap/Mine.json -w \"%{http_code}\" -X POST http://localhost:3000/api/books/plot -F \"file=@testMap/goodreads_library_export.csv\")",
+      "Bash(curl *)",
+      "Bash(python *)",
+      "Bash(echo \"exit: $?\")"
     ]
   }
 }

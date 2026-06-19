@@ -1,0 +1,31 @@
+/* ── Dropzone ────────────────────────────────────────────────────────────── */
+.bg-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 56px 28px;
+  border: 1.5px dashed var(--accent);
+  border-radius: 16px;
+  background:
+    radial-gradient(120% 140% at 50% -10%, rgba(110, 60, 170, 0.18), transparent 60%),
+    var(--code-bg);
+  color: var(--link);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+.bg-drop:hover, .bg-drop.over {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 4px rgba(110, 60, 170, 0.12), 0 10px 40px rgba(70, 40, 110, 0.35);
+  transform: translateY(-2px);
+}
+.bg-drop.over { background:
+    radial-gradient(120% 140% at 50% -10%, rgba(140, 80, 210, 0.32), transparent 60%),
+    var(--code-bg); }
+.bg-drop.disabled { opacity: 0.5; pointer-events: none; }
+.bg-drop svg { color: var(--accent-hover); margin-bottom: 6px; }
+.bg-drop-main { margin: 0; color: var(--text-h); font-size: 1.05rem; }
+.bg-drop-main strong { color: #c4aee8; font-weight: 600; }
+.bg-drop-sub { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.bg-link { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }

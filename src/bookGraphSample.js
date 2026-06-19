@@ -10,7 +10,7 @@
    ──────────────────────────────────────────────────────────────────────────── */
 
 // ── Pick which testMap to plot in dev. Use the filename without `.json`. ──────
-const SAMPLE = 'Mine'
+const SAMPLE = 'Large'
 
 const runs = import.meta.glob('../testMap/*.json', { eager: true, import: 'default' })
 
@@ -23,3 +23,14 @@ export const SAMPLE_NAMES = Object.keys(byName)
 
 export const SAMPLE_PLOT =
   byName[SAMPLE] ?? byName[SAMPLE_NAMES[0]] // fall back to whatever's there
+
+// Mock corpus for dev: loaded from testMap/Corpus.json (a saved run of GET /api/books/corpus).
+// Handles whichever shape the endpoint returns: array, { points }, or { books }.
+// Falls back to an empty array until the file is populated via build_projection.
+const _corpusRaw = byName['Corpus']
+const _corpusPts = Array.isArray(_corpusRaw)
+  ? _corpusRaw
+  : Array.isArray(_corpusRaw?.points) ? _corpusRaw.points
+  : Array.isArray(_corpusRaw?.books)  ? _corpusRaw.books
+  : []
+export const SAMPLE_CORPUS = _corpusPts.map(p => ({ x: p.x, y: p.y, genre: p.genre || '', title: p.title || '', author: p.author || '' }))
