@@ -10,7 +10,7 @@
    ──────────────────────────────────────────────────────────────────────────── */
 
 // ── Pick which testMap to plot in dev. Use the filename without `.json`. ──────
-const SAMPLE = 'Mine'
+const SAMPLE = 'Large'
 
 const runs = import.meta.glob('../testMap/*.json', { eager: true, import: 'default' })
 

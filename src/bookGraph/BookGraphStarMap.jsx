@@ -116,7 +116,9 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       const counts = {}
       for (const m of members) counts[m.genre || ''] = (counts[m.genre || ''] || 0) + 1
       const topGenre = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || ''
-      clusters.push({ members, rgb: genreRgb(topGenre) })
+      const wx = members.reduce((s, m) => s + m.x, 0) / members.length
+      const wy = members.reduce((s, m) => s + m.y, 0) / members.length
+      clusters.push({ members, rgb: genreRgb(topGenre), wx, wy })
     }
 
     // constellation links: MST per author, capped at maxLinkT
@@ -243,8 +245,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     let W = 0, H = 0, dpr = Math.min(window.devicePixelRatio || 1, 2)
 
     const resize = () => {
-      const rect = wrap.getBoundingClientRect()
-      W = rect.width; H = rect.height
+      canvasRect = wrap.getBoundingClientRect()
+      W = canvasRect.width; H = canvasRect.height
       dpr = Math.min(window.devicePixelRatio || 1, 2)
       canvas.width = Math.round(W * dpr)
       canvas.height = Math.round(H * dpr)
@@ -259,9 +261,16 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
         phase: Math.random() * Math.PI * 2,
         twk: Math.random() * 1.5 + 0.5,
       }))
+      bgGrad = ctx.createRadialGradient(W * 0.4, H * 0.35, 0, W * 0.4, H * 0.35, Math.max(W, H) * 0.8)
+      bgGrad.addColorStop(0, '#140d24')
+      bgGrad.addColorStop(0.55, '#0a0616')
+      bgGrad.addColorStop(1, '#050208')
       fitView(W, H)
     }
 
+    let bgGrad = null
+    let canvasRect = null
+    const screenPosCache = new Map()
     const keyMap = new Map(points.map(p => [p.key, p]))
     const dragMoved = { current: false }
     const orbitAng = new Map()
@@ -290,25 +299,23 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
         }
       }
 
-      const bg = ctx.createRadialGradient(W * 0.4, H * 0.35, 0, W * 0.4, H * 0.35, Math.max(W, H) * 0.8)
-      bg.addColorStop(0, '#140d24')
-      bg.addColorStop(0.55, '#0a0616')
-      bg.addColorStop(1, '#050208')
-      ctx.fillStyle = bg
+      ctx.fillStyle = bgGrad
       ctx.fillRect(0, 0, W, H)
       ctx.globalAlpha = 1
 
       // cluster halos — coloured by dominant genre of each cluster
       if (visibleRef.current.read !== false) {
         for (const cl of structure.clusters) {
-          const pts = cl.members.filter(m => visibleRef.current[m.genre] !== false).map(m => worldToScreen(m.x, m.y, W, H))
-          if (!pts.length) continue
-          let cx = 0, cy = 0
-          for (const [x, y] of pts) { cx += x; cy += y }
-          cx /= pts.length; cy /= pts.length
-          let rad = 0
-          for (const [x, y] of pts) rad = Math.max(rad, Math.hypot(x - cx, y - cy))
-          rad = rad * 1.55 + 40
+          const [cx, cy] = worldToScreen(cl.wx, cl.wy, W, H)
+          let rad = 0, hasVisible = false
+          for (const m of cl.members) {
+            if (visibleRef.current[m.genre] === false) continue
+            hasVisible = true
+            const [sx, sy] = worldToScreen(m.x, m.y, W, H)
+            rad = Math.max(rad, Math.hypot(sx - cx, sy - cy))
+          }
+          if (!hasVisible) continue
+          rad = Math.min(rad * 1.55 + 40, 200)
           const { r, g, b } = cl.rgb
           const grd = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad)
           grd.addColorStop(0, `rgba(${r},${g},${b},0.11)`)
@@ -335,6 +342,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
         for (const p of points) {
           if (p.layer !== 'corpus') continue
           const [sx, sy] = screenPos(p)
+          screenPosCache.set(p.key, [sx, sy])
           if (sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) continue
           const rgb = genreRgb(p.genre)
           const sprite = sprites[`genre:${p.genre || ''}`] || sprites['genre:']
@@ -376,7 +384,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       // user data points (read, want, suggestions)
       const zoom = view.current.z
       const sizeFade = Math.max(0.5, Math.min(zoom, 2.6))
-      const dimFade = 0.3 * (0.78 + 0.22 * Math.min(zoom, 1))
+      const dimFade = 0.3 * Math.pow(Math.min(zoom, 1), 2.5)
       const coreFade = Math.max(0.7, Math.min(zoom, 1.8))
       for (const p of points) {
         if (p.layer === 'corpus') continue
@@ -385,6 +393,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
         if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
         const isRec = p.layer === 'suggestions'
         const [sx, sy] = screenPos(p)
+        screenPosCache.set(p.key, [sx, sy])
         if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
         const tw = reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(time * 1.4 + p.phase)
 
@@ -443,40 +452,42 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
 
       ctx.globalAlpha = 1
 
-      // hover emphasis ring
-      for (const p of points) {
-        if (p.layer === 'corpus' && !visibleRef.current.corpus) continue
-        if (p.layer === 'want' && !visibleRef.current.want) continue
-        if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
-        if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
-        if (hoverRef.current !== p.key) continue
-        const isRec = p.layer === 'suggestions'
-        const isCorpus = p.layer === 'corpus'
-        const [sx, sy] = screenPos(p)
-        if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
-        ctx.beginPath()
-        ctx.arc(sx, sy, isRec ? 9 : p.size * 1.7 + 3, 0, Math.PI * 2)
-        ctx.strokeStyle = isCorpus ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)'
-        ctx.lineWidth = 1.4
-        ctx.stroke()
+      // hover ring — O(1) lookup
+      const hovP = hoverRef.current ? keyMap.get(hoverRef.current) : null
+      if (hovP &&
+          !(hovP.layer === 'corpus' && !visibleRef.current.corpus) &&
+          !(hovP.layer === 'want' && !visibleRef.current.want) &&
+          !(hovP.layer === 'suggestions' && !visibleRef.current.suggestions) &&
+          !(hovP.layer === 'read' && visibleRef.current[hovP.genre] === false)) {
+        const isRec = hovP.layer === 'suggestions'
+        const isCorpus = hovP.layer === 'corpus'
+        const [sx, sy] = screenPosCache.get(hovP.key) ?? screenPos(hovP)
+        if (sx >= -60 && sx <= W + 60 && sy >= -60 && sy <= H + 60) {
+          ctx.beginPath()
+          ctx.arc(sx, sy, isRec ? 9 : hovP.size * 1.7 + 3, 0, Math.PI * 2)
+          ctx.strokeStyle = isCorpus ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)'
+          ctx.lineWidth = 1.4
+          ctx.stroke()
+        }
       }
 
-      // selection ring — brighter and thicker than hover ring
-      for (const p of points) {
-        if (p.layer === 'corpus' && !visibleRef.current.corpus) continue
-        if (p.layer === 'want' && !visibleRef.current.want) continue
-        if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
-        if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
-        if (selectedRef.current !== p.key) continue
-        const isRec = p.layer === 'suggestions'
-        const isCorpus = p.layer === 'corpus'
-        const [sx, sy] = screenPos(p)
-        if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
-        ctx.beginPath()
-        ctx.arc(sx, sy, isRec ? 11 : p.size * 1.7 + 5, 0, Math.PI * 2)
-        ctx.strokeStyle = isCorpus ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)'
-        ctx.lineWidth = 2
-        ctx.stroke()
+      // selection ring — O(1) lookup
+      const selP = selectedRef.current ? keyMap.get(selectedRef.current) : null
+      if (selP &&
+          !(selP.layer === 'corpus' && !visibleRef.current.corpus) &&
+          !(selP.layer === 'want' && !visibleRef.current.want) &&
+          !(selP.layer === 'suggestions' && !visibleRef.current.suggestions) &&
+          !(selP.layer === 'read' && visibleRef.current[selP.genre] === false)) {
+        const isRec = selP.layer === 'suggestions'
+        const isCorpus = selP.layer === 'corpus'
+        const [sx, sy] = screenPosCache.get(selP.key) ?? screenPos(selP)
+        if (sx >= -60 && sx <= W + 60 && sy >= -60 && sy <= H + 60) {
+          ctx.beginPath()
+          ctx.arc(sx, sy, isRec ? 11 : selP.size * 1.7 + 5, 0, Math.PI * 2)
+          ctx.strokeStyle = isCorpus ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)'
+          ctx.lineWidth = 2
+          ctx.stroke()
+        }
       }
 
       raf = requestAnimationFrame(draw)
@@ -500,7 +511,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
         if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
         if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
         const isRec = p.layer === 'suggestions'
-        const [sx, sy] = screenPos(p)
+        const cached = screenPosCache.get(p.key)
+        const [sx, sy] = cached ?? screenPos(p)
         const d = Math.hypot(sx - mx, sy - my)
         const hit = isRec ? 14 : p.size * 1.8 + 6
         if (d < hit && d < bestD) { bestD = d; best = { p, sx, sy } }
@@ -509,8 +521,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     }
 
     const onMove = (e) => {
-      const rect = canvas.getBoundingClientRect()
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top
+      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
       if (dragging.current) {
         const dx = mx - dragging.current.x, dy = my - dragging.current.y
         if (Math.hypot(dx, dy) > 4) dragMoved.current = true
@@ -521,21 +532,22 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
         return
       }
       const found = pickPoint(mx, my)
-      hoverRef.current = found ? found.p.key : null
-      canvas.style.cursor = found ? 'pointer' : 'grab'
-      setHover(found ? { point: found.p, sx: found.sx, sy: found.sy, W } : null)
+      const newKey = found ? found.p.key : null
+      if (newKey !== hoverRef.current) {
+        hoverRef.current = newKey
+        canvas.style.cursor = found ? 'pointer' : 'grab'
+        setHover(found ? { point: found.p, sx: found.sx, sy: found.sy, W } : null)
+      }
     }
     const onDown = (e) => {
-      const rect = canvas.getBoundingClientRect()
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top
+      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
       dragMoved.current = false
       dragging.current = { x: mx, y: my }
       canvas.style.cursor = 'grabbing'
     }
     const onClick = (e) => {
       if (dragMoved.current) return
-      const rect = canvas.getBoundingClientRect()
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top
+      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
       const found = pickPoint(mx, my)
       if (found && onSelect) onSelect(found.p)
     }
@@ -543,8 +555,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     const onLeave = () => { hoverRef.current = null; setHover(null); dragging.current = null }
     const onWheel = (e) => {
       e.preventDefault()
-      const rect = canvas.getBoundingClientRect()
-      const mx = e.clientX - rect.left, my = e.clientY - rect.top
+      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
       const v = view.current, c = center.current
       const bx = baseScale.current.x * v.z, by = baseScale.current.y * v.z
       const wx = (mx - W / 2 - v.panX) / bx + c.x
