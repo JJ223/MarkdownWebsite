@@ -1,0 +1,51 @@
+/* ── Detail panel ────────────────────────────────────────────────────────── */
+.bg-detail {
+  position: relative;
+  border: 1px solid #2a1850;
+  background:
+    radial-gradient(120% 120% at 100% 0%, rgba(110, 60, 170, 0.14), transparent 55%),
+    var(--code-bg);
+  border-radius: 12px;
+  padding: 22px 24px;
+  animation: bg-rise 0.25s ease;
+}
+.bg-detail-close {
+  position: absolute;
+  top: 12px; right: 14px;
+  background: none; border: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.bg-detail-close:hover { color: var(--text-h); }
+.bg-detail-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--c);
+  border: 1px solid color-mix(in srgb, var(--c) 50%, transparent);
+  border-radius: 5px;
+  padding: 2px 9px;
+}
+.bg-detail h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  color: var(--text-h);
+  font-size: 1.35rem;
+  margin: 12px 0 2px;
+  line-height: 1.2;
+}
+.bg-detail-author { color: var(--link); margin: 0 0 14px; font-size: 0.95rem; }
+.bg-detail-note { color: var(--text); font-size: 0.9rem; margin: 0; }
+.bg-detail dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.bg-detail dl div { display: flex; flex-direction: column; gap: 2px; }
+.bg-detail dt {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+.bg-detail dd { margin: 0; color: var(--text-h); font-size: 0.95rem; }
+.bg-detail dd em { color: var(--link); font-style: italic; }

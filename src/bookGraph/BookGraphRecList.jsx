@@ -1,3 +1,5 @@
+import './BookGraphRecList.css'
+
 export default function RecList({ title, items, accent }) {
   if (!items?.length) return null
   return (

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import './BookGraphShare.css'
 
 export default function ShareControls({ canvasRef, data }) {
   const [open, setOpen] = useState(false)

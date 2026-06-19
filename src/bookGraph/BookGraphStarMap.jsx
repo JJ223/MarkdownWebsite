@@ -1,14 +1,41 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { LAYERS } from './bookGraphConfig.js'
+import { LAYERS, genreRgb } from './bookGraphConfig.js'
+import './BookGraphStarMap.css'
 
-function StarMap({ data, canvasOutRef }) {
+function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
   const canvasRef = useRef(null)
   const wrapRef = useRef(null)
   const [hover, setHover] = useState(null)
-  const [visible, setVisible] = useState({ read: true, want: false, suggestions: true })
+  const selectedRef = useRef(selectedKey)
+  useEffect(() => { selectedRef.current = selectedKey }, [selectedKey])
+
+  // Derive sorted genre list from the user's read books only.
+  const genres = useMemo(() => {
+    const seen = new Set()
+    for (const p of data.read || []) if (p.genre) seen.add(p.genre)
+    return [...seen].sort()
+  }, [data])
+
+  // Visibility: genres (missing key = true/on) + fixed overlays.
+  // Corpus defaults to true when present; want starts hidden.
+  const [visible, setVisible] = useState({ want: false, suggestions: true, corpus: true })
   const visibleRef = useRef(visible)
   useEffect(() => { visibleRef.current = visible }, [visible])
+
+  // Ensure new genres that appear are added as visible
+  useEffect(() => {
+    setVisible(v => {
+      let changed = false
+      const next = { ...v }
+      for (const g of genres) if (!(g in next)) { next[g] = true; changed = true }
+      return changed ? next : v
+    })
+  }, [genres])
+
   const toggleLayer = (k) => setVisible(v => ({ ...v, [k]: !v[k] }))
+
+  const isGenreVisible = (genre) => visible[genre] !== false
+
   const reduceMotion = useMemo(
     () => typeof window !== 'undefined' &&
       !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
@@ -31,31 +58,30 @@ function StarMap({ data, canvasOutRef }) {
     push(data.want, 'want', () => 6)
     push(data.recommendations?.new_authors, 'suggestions', () => 5, 'sug-new')
     push(data.recommendations?.familiar_authors, 'suggestions', () => 5, 'sug-fam')
+    push(corpus, 'corpus', () => 6, 'corpus')
 
-    // Cosmetic jitter: real exports stack many books on near-identical coords
-    // (e.g. every Harry Potter title lands on one pixel). A small fixed offset —
-    // a fraction of the data range, assigned once per point — fans those stacks
-    // into a readable cluster so each star is individually hoverable.
-    if (out.length) {
+    // Cosmetic jitter: fans stacked same-coord books into individually hoverable clusters
+    const userPts = out.filter(p => p.layer !== 'corpus')
+    if (userPts.length) {
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
-      for (const p of out) {
+      for (const p of userPts) {
         if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x
         if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y
       }
       const jx = Math.max(maxX - minX, 1e-3) * 0.01
       const jy = Math.max(maxY - minY, 1e-3) * 0.01
-      for (const p of out) {
+      for (const p of userPts) {
         p.x += (Math.random() * 2 - 1) * jx
         p.y += (Math.random() * 2 - 1) * jy
       }
     }
     return out
-  }, [data])
+  }, [data, corpus])
 
-  // Separation cues derived once in world space (projected to screen each frame):
-  //  • clusters → soft nebula halos behind each detected group of read books
-  //  • links    → constellation lines between near-neighbour read books
-  //  • orbits   → each recommendation orbits the read book that inspired it
+  // Separation cues derived once in world space:
+  //  • clusters → soft nebula halos behind groups of read books (coloured by dominant genre)
+  //  • links    → constellation lines between same-author read books
+  //  • orbits   → each suggestion orbits the read book that inspired it
   const structure = useMemo(() => {
     const readPts = points.filter(p => p.layer === 'read')
     const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y)
@@ -83,20 +109,17 @@ function StarMap({ data, canvasOutRef }) {
       groups.get(r).push(p)
     })
 
-    const PALETTE = [
-      { r: 150, g: 110, b: 255 }, { r: 95, g: 145, b: 255 }, { r: 230, g: 120, b: 210 },
-      { r: 95, g: 200, b: 210 }, { r: 180, g: 140, b: 255 }, { r: 130, g: 120, b: 235 },
-    ]
-    let ci = 0
     const clusters = []
     for (const members of groups.values()) {
       if (members.length < 3) continue
-      clusters.push({ members, rgb: PALETTE[ci % PALETTE.length] })
-      ci++
+      // colour halo by the dominant genre in this cluster
+      const counts = {}
+      for (const m of members) counts[m.genre || ''] = (counts[m.genre || ''] || 0) + 1
+      const topGenre = Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] || ''
+      clusters.push({ members, rgb: genreRgb(topGenre) })
     }
 
-    // constellation links: within each author, draw a minimum spanning tree so
-    // their titles form one constellation. Edges longer than maxLinkT are dropped.
+    // constellation links: MST per author, capped at maxLinkT
     const byAuthor = new Map()
     readPts.forEach(p => {
       const a = norm(p.author)
@@ -127,7 +150,7 @@ function StarMap({ data, canvasOutRef }) {
       }
     }
 
-    // orbits: each recommendation circles the read book named in `because_you_read`
+    // orbits: each suggestion circles the read book it was inspired by
     const byTitle = new Map()
     readPts.forEach(p => { const t = norm(p.title); if (t && !byTitle.has(t)) byTitle.set(t, p) })
     const orbits = new Map()
@@ -150,6 +173,7 @@ function StarMap({ data, canvasOutRef }) {
   const dragging = useRef(null)
 
   // Pre-render a soft radial halo sprite per colour (fast drawImage blits).
+  // Sprites are keyed by genre name for read/corpus, or layer key for overlays.
   const sprites = useMemo(() => {
     const make = (rgb) => {
       const s = 128
@@ -168,17 +192,21 @@ function StarMap({ data, canvasOutRef }) {
       return c
     }
     const map = {}
+    for (const g of genres) map[`genre:${g}`] = make(genreRgb(g))
+    map['genre:'] = make(genreRgb(''))
     for (const k in LAYERS) map[k] = make(LAYERS[k].rgb)
     map._white = make({ r: 235, g: 225, b: 255 })
     return map
-  }, [])
+  }, [genres])
 
   const bgStars = useRef([])
 
+  // Frame the view to the user's read books (corpus is background reference only)
   const fitView = useCallback((W, H) => {
-    if (!points.length) return
-    const frame = points.filter(p => p.layer === 'read')
-    const src = frame.length ? frame : points
+    const userPts = points.filter(p => p.layer !== 'corpus')
+    if (!userPts.length) return
+    const frame = userPts.filter(p => p.layer === 'read')
+    const src = frame.length ? frame : userPts
     let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
     for (const p of src) {
       if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x
@@ -234,23 +262,16 @@ function StarMap({ data, canvasOutRef }) {
       fitView(W, H)
     }
 
-    const norm = s => (s || '').trim().toLowerCase()
     const keyMap = new Map(points.map(p => [p.key, p]))
-
-    const FOCUS_FADE = 0.75
-    // Hover intent: only engage focus dimming once the pointer has rested
-    const HOVER_DELAY = 0.25
-    let lastMoveAt = 0
-    let focusAmt = 0, prevT = 0, lastAuthor = null, lastKeys = null
-
+    const dragMoved = { current: false }
     const orbitAng = new Map()
     for (const [k, orb] of structure.orbits) orbitAng.set(k, orb.phase)
+    let prevT = 0
 
     const worldPos = (p) => {
       const orb = structure.orbits.get(p.key)
       if (!orb) return [p.x, p.y]
       const ang = orbitAng.has(p.key) ? orbitAng.get(p.key) : orb.phase
-      // Scale y offset by x/y base-scale ratio so the path is a true circle on screen
       const ratio = baseScale.current.x / baseScale.current.y
       return [orb.sx + orb.r * Math.cos(ang), orb.sy - orb.r * ratio * Math.sin(ang)]
     }
@@ -260,11 +281,6 @@ function StarMap({ data, canvasOutRef }) {
       const time = t / 1000
       const hp = hoverRef.current ? keyMap.get(hoverRef.current) : null
       const hoverOrbit = hp && hp.layer === 'suggestions' ? structure.orbits.get(hp.key) : null
-      const settled = (time - lastMoveAt) >= HOVER_DELAY
-      let focusAuthor = null, focusKeys = null
-      if (settled && hp && hp.layer === 'read' && hp.author) focusAuthor = norm(hp.author)
-      else if (settled && hoverOrbit) focusKeys = new Set([hp.key, hoverOrbit.srcKey])
-      else if (settled && hp && hp.layer === 'want') focusKeys = new Set([hp.key])
       if (!prevT) prevT = time
       const dt = Math.min(time - prevT, 0.05); prevT = time
       if (!reduceMotion) {
@@ -273,14 +289,6 @@ function StarMap({ data, canvasOutRef }) {
           orbitAng.set(k, orbitAng.get(k) + dt * orb.speed)
         }
       }
-      const target = (focusAuthor || focusKeys) ? 1 : 0
-      const step = dt / FOCUS_FADE
-      focusAmt += Math.max(-step, Math.min(step, target - focusAmt))
-      if (focusAuthor) { lastAuthor = focusAuthor; lastKeys = null }
-      else if (focusKeys) { lastKeys = focusKeys; lastAuthor = null }
-      const active = focusAmt > 0.001
-      const fAuthor = focusAuthor || (active ? lastAuthor : null)
-      const fKeys = focusKeys || (active ? lastKeys : null)
 
       const bg = ctx.createRadialGradient(W * 0.4, H * 0.35, 0, W * 0.4, H * 0.35, Math.max(W, H) * 0.8)
       bg.addColorStop(0, '#140d24')
@@ -290,10 +298,11 @@ function StarMap({ data, canvasOutRef }) {
       ctx.fillRect(0, 0, W, H)
       ctx.globalAlpha = 1
 
-      // cluster halos
-      if (visibleRef.current.read) {
+      // cluster halos — coloured by dominant genre of each cluster
+      if (visibleRef.current.read !== false) {
         for (const cl of structure.clusters) {
-          const pts = cl.members.map(m => worldToScreen(m.x, m.y, W, H))
+          const pts = cl.members.filter(m => visibleRef.current[m.genre] !== false).map(m => worldToScreen(m.x, m.y, W, H))
+          if (!pts.length) continue
           let cx = 0, cy = 0
           for (const [x, y] of pts) { cx += x; cy += y }
           cx /= pts.length; cy /= pts.length
@@ -319,80 +328,116 @@ function StarMap({ data, canvasOutRef }) {
       }
       ctx.globalAlpha = 1
 
-      // constellation lines
-      if (visibleRef.current.read && structure.links.length) {
-        const stroke = (filter, style, width) => {
-          ctx.strokeStyle = style; ctx.lineWidth = width
-          ctx.beginPath()
-          for (const [a, b] of structure.links) {
-            if (filter && !filter(a)) continue
-            const [ax, ay] = worldToScreen(a.x, a.y, W, H)
-            const [bx, by] = worldToScreen(b.x, b.y, W, H)
-            ctx.moveTo(ax, ay); ctx.lineTo(bx, by)
-          }
-          ctx.stroke()
+      // corpus — faded reference points behind everything else
+      if (visibleRef.current.corpus) {
+        const zoom = view.current.z
+        const cSizeFade = Math.max(0.4, Math.min(zoom, 1.8))
+        for (const p of points) {
+          if (p.layer !== 'corpus') continue
+          const [sx, sy] = screenPos(p)
+          if (sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) continue
+          const rgb = genreRgb(p.genre)
+          const sprite = sprites[`genre:${p.genre || ''}`] || sprites['genre:']
+          const isHov = hoverRef.current === p.key
+          const isSel = selectedRef.current === p.key
+          const d = p.size * 2.6 * cSizeFade
+          ctx.globalAlpha = isSel ? 0.35 : isHov ? 0.25 : 0.08
+          ctx.drawImage(sprite, sx - d, sy - d, d * 2, d * 2)
+          const cr = p.size * 0.56 * cSizeFade
+          ctx.globalAlpha = isSel ? 0.55 : isHov ? 0.38 : 0.13
+          ctx.fillStyle = `rgb(${rgb.r},${rgb.g},${rgb.b})`
+          ctx.beginPath(); ctx.arc(sx, sy, cr, 0, Math.PI * 2); ctx.fill()
         }
-        if ((!fAuthor && !fKeys) || focusAmt < 0.001) {
-          stroke(null, 'rgba(190,170,255,0.42)', 1.9)
-        } else {
-          const lerp = (a, b) => a + (b - a) * focusAmt
-          stroke(a => norm(a.author) !== fAuthor, `rgba(178,158,255,${lerp(0.42, 0.08)})`, lerp(1.9, 1.2))
-          if (fAuthor) stroke(a => norm(a.author) === fAuthor, `rgba(210,194,255,${lerp(0.42, 0.85)})`, lerp(1.9, 2.6))
-        }
+        ctx.globalAlpha = 1
       }
 
-      // orbit outline while hovering a recommendation
+      // constellation lines
+      if (structure.links.length) {
+        ctx.strokeStyle = 'rgba(190,170,255,0.42)'; ctx.lineWidth = 1.9
+        ctx.beginPath()
+        for (const [a, b] of structure.links) {
+          if (visibleRef.current[a.genre] === false) continue
+          const [ax, ay] = worldToScreen(a.x, a.y, W, H)
+          const [bx, by] = worldToScreen(b.x, b.y, W, H)
+          ctx.moveTo(ax, ay); ctx.lineTo(bx, by)
+        }
+        ctx.stroke()
+      }
+
+      // orbit outline while hovering a suggestion
       if (hoverOrbit && visibleRef.current.suggestions) {
         const [cx, cy] = worldToScreen(hoverOrbit.sx, hoverOrbit.sy, W, H)
         const R = hoverOrbit.r * baseScale.current.x * view.current.z
-        ctx.strokeStyle = `rgba(150,170,255,${0.5 * focusAmt})`
+        ctx.strokeStyle = 'rgba(150,170,255,0.5)'
         ctx.lineWidth = 1.2
         ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.stroke()
       }
 
-      // data points
+      // user data points (read, want, suggestions)
       const zoom = view.current.z
       const sizeFade = Math.max(0.5, Math.min(zoom, 2.6))
-      const dimFade = 0.52 * (0.78 + 0.22 * Math.min(zoom, 1))
+      const dimFade = 0.3 * (0.78 + 0.22 * Math.min(zoom, 1))
       const coreFade = Math.max(0.7, Math.min(zoom, 1.8))
       for (const p of points) {
-        if (!visibleRef.current[p.layer]) continue
+        if (p.layer === 'corpus') continue
+        if (p.layer === 'want' && !visibleRef.current.want) continue
+        if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
+        if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
         const isRec = p.layer === 'suggestions'
         const [sx, sy] = screenPos(p)
         if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
         const tw = reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(time * 1.4 + p.phase)
-        const inFocus = (fAuthor && p.layer === 'read' && norm(p.author) === fAuthor) ||
-          (fKeys && fKeys.has(p.key))
-        const focusMul = inFocus ? 1 : 1 - 0.74 * focusAmt
-        const { r, g, b } = LAYERS[p.layer].rgb
+
+        // colour: genre for read; white for suggestions; layer colour for want
+        const rgb = p.layer === 'read'
+          ? genreRgb(p.genre)
+          : p.layer === 'suggestions'
+            ? { r: 235, g: 230, b: 255 }
+            : LAYERS[p.layer].rgb
+        const { r, g, b } = rgb
 
         if (p.layer === 'want') {
           const tws = reduceMotion ? 0.7 : 0.45 + 0.35 * Math.sin(time * 1.1 + p.phase)
-          const rr = 1.7 * coreFade
+          const rr = p.size * 0.56 * coreFade
           const gl = ctx.createRadialGradient(sx, sy, 0, sx, sy, rr * 2.8)
           gl.addColorStop(0, `rgba(${r},${g},${b},0.5)`)
           gl.addColorStop(0.5, `rgba(${r},${g},${b},0.14)`)
           gl.addColorStop(1, `rgba(${r},${g},${b},0)`)
-          ctx.globalAlpha = (0.55 + tws * 0.45) * focusMul
+          ctx.globalAlpha = 0.55 + tws * 0.45
           ctx.fillStyle = gl
           ctx.beginPath(); ctx.arc(sx, sy, rr * 2.8, 0, Math.PI * 2); ctx.fill()
-          ctx.globalAlpha = (0.6 + tws * 0.4) * focusMul
+          ctx.globalAlpha = 0.6 + tws * 0.4
           ctx.fillStyle = `rgb(${r},${g},${b})`
           ctx.beginPath(); ctx.arc(sx, sy, rr, 0, Math.PI * 2); ctx.fill()
           continue
         }
 
+        const spriteKey = p.layer === 'read'
+          ? `genre:${p.genre || ''}`
+          : p.layer === 'suggestions'
+            ? '_white'
+            : p.layer
+        const sprite = sprites[spriteKey] || sprites['genre:']
         const d = (isRec ? 6.4 : p.size) * (isRec ? 2.5 : 2.6) * sizeFade
-        ctx.globalAlpha = tw * dimFade * focusMul
-        ctx.drawImage(sprites[p.layer], sx - d, sy - d, d * 2, d * 2)
+        ctx.globalAlpha = tw * dimFade
+        ctx.drawImage(sprite, sx - d, sy - d, d * 2, d * 2)
         const cr = (isRec ? 2.6 : p.size * 0.56) * coreFade
-        ctx.globalAlpha = Math.min(1, tw + 0.1) * 0.72 * focusMul
+        ctx.globalAlpha = Math.min(1, tw + 0.1) * 0.9
         const cg = ctx.createRadialGradient(sx, sy, 0, sx, sy, cr)
         cg.addColorStop(0, `rgb(${Math.min(r + 60, 255)},${Math.min(g + 60, 255)},${Math.min(b + 38, 255)})`)
         cg.addColorStop(0.55, `rgb(${Math.min(r + 20, 255)},${Math.min(g + 20, 255)},${Math.min(b + 10, 255)})`)
         cg.addColorStop(1, `rgb(${Math.round(r * 0.88)},${Math.round(g * 0.88)},${Math.round(b * 0.88)})`)
         ctx.fillStyle = cg
-        ctx.beginPath(); ctx.arc(sx, sy, cr, 0, Math.PI * 2)
+        ctx.beginPath()
+        if (isRec) {
+          ctx.moveTo(sx,      sy - cr)
+          ctx.lineTo(sx + cr, sy)
+          ctx.lineTo(sx,      sy + cr)
+          ctx.lineTo(sx - cr, sy)
+          ctx.closePath()
+        } else {
+          ctx.arc(sx, sy, cr, 0, Math.PI * 2)
+        }
         ctx.fill()
       }
 
@@ -400,15 +445,37 @@ function StarMap({ data, canvasOutRef }) {
 
       // hover emphasis ring
       for (const p of points) {
-        if (!visibleRef.current[p.layer]) continue
+        if (p.layer === 'corpus' && !visibleRef.current.corpus) continue
+        if (p.layer === 'want' && !visibleRef.current.want) continue
+        if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
+        if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
         if (hoverRef.current !== p.key) continue
         const isRec = p.layer === 'suggestions'
+        const isCorpus = p.layer === 'corpus'
         const [sx, sy] = screenPos(p)
         if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
         ctx.beginPath()
         ctx.arc(sx, sy, isRec ? 9 : p.size * 1.7 + 3, 0, Math.PI * 2)
-        ctx.strokeStyle = 'rgba(255,255,255,0.6)'
+        ctx.strokeStyle = isCorpus ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.6)'
         ctx.lineWidth = 1.4
+        ctx.stroke()
+      }
+
+      // selection ring — brighter and thicker than hover ring
+      for (const p of points) {
+        if (p.layer === 'corpus' && !visibleRef.current.corpus) continue
+        if (p.layer === 'want' && !visibleRef.current.want) continue
+        if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
+        if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
+        if (selectedRef.current !== p.key) continue
+        const isRec = p.layer === 'suggestions'
+        const isCorpus = p.layer === 'corpus'
+        const [sx, sy] = screenPos(p)
+        if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
+        ctx.beginPath()
+        ctx.arc(sx, sy, isRec ? 11 : p.size * 1.7 + 5, 0, Math.PI * 2)
+        ctx.strokeStyle = isCorpus ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.95)'
+        ctx.lineWidth = 2
         ctx.stroke()
       }
 
@@ -428,7 +495,10 @@ function StarMap({ data, canvasOutRef }) {
     const pickPoint = (mx, my) => {
       let best = null, bestD = Infinity
       for (const p of points) {
-        if (!visibleRef.current[p.layer]) continue
+        if (p.layer === 'corpus' && !visibleRef.current.corpus) continue
+        if (p.layer === 'want' && !visibleRef.current.want) continue
+        if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
+        if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
         const isRec = p.layer === 'suggestions'
         const [sx, sy] = screenPos(p)
         const d = Math.hypot(sx - mx, sy - my)
@@ -439,12 +509,13 @@ function StarMap({ data, canvasOutRef }) {
     }
 
     const onMove = (e) => {
-      lastMoveAt = performance.now() / 1000
       const rect = canvas.getBoundingClientRect()
       const mx = e.clientX - rect.left, my = e.clientY - rect.top
       if (dragging.current) {
-        view.current.panX += mx - dragging.current.x
-        view.current.panY += my - dragging.current.y
+        const dx = mx - dragging.current.x, dy = my - dragging.current.y
+        if (Math.hypot(dx, dy) > 4) dragMoved.current = true
+        view.current.panX += dx
+        view.current.panY += dy
         dragging.current = { x: mx, y: my }
         clampPan()
         return
@@ -457,8 +528,16 @@ function StarMap({ data, canvasOutRef }) {
     const onDown = (e) => {
       const rect = canvas.getBoundingClientRect()
       const mx = e.clientX - rect.left, my = e.clientY - rect.top
-      dragging.current = { x: mx, y: my, moved: false }
+      dragMoved.current = false
+      dragging.current = { x: mx, y: my }
       canvas.style.cursor = 'grabbing'
+    }
+    const onClick = (e) => {
+      if (dragMoved.current) return
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
+      const found = pickPoint(mx, my)
+      if (found && onSelect) onSelect(found.p)
     }
     const onUp = () => { dragging.current = null; canvas.style.cursor = 'grab' }
     const onLeave = () => { hoverRef.current = null; setHover(null); dragging.current = null }
@@ -470,8 +549,6 @@ function StarMap({ data, canvasOutRef }) {
       const bx = baseScale.current.x * v.z, by = baseScale.current.y * v.z
       const wx = (mx - W / 2 - v.panX) / bx + c.x
       const wy = -(my - H / 2 - v.panY) / by + c.y
-      // Normalise across input devices: trackpads emit many small pixel deltas,
-      // mouse wheels emit a few large line/page deltas
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? H : 1
       const factor = Math.exp(-e.deltaY * unit * 0.0035)
       v.z = Math.min(Math.max(v.z * factor, 0.6), 60)
@@ -486,6 +563,7 @@ function StarMap({ data, canvasOutRef }) {
     resize()
     canvas.addEventListener('mousemove', onMove)
     canvas.addEventListener('mousedown', onDown)
+    canvas.addEventListener('click', onClick)
     window.addEventListener('mouseup', onUp)
     canvas.addEventListener('mouseleave', onLeave)
     canvas.addEventListener('wheel', onWheel, { passive: false })
@@ -497,6 +575,7 @@ function StarMap({ data, canvasOutRef }) {
       ro.disconnect()
       canvas.removeEventListener('mousemove', onMove)
       canvas.removeEventListener('mousedown', onDown)
+      canvas.removeEventListener('click', onClick)
       window.removeEventListener('mouseup', onUp)
       canvas.removeEventListener('mouseleave', onLeave)
       canvas.removeEventListener('wheel', onWheel)
@@ -506,25 +585,54 @@ function StarMap({ data, canvasOutRef }) {
 
   const resetView = () => canvasRef.current?._resetView?.()
 
+  const hasCorpus = corpus && corpus.length > 0
+
   return (
     <div className="bg-map" ref={wrapRef}>
       <canvas ref={canvasRef} className="bg-canvas" />
 
-      <div className="bg-legend">
-        {Object.entries(LAYERS).map(([k, v]) => (
-          <button
-            key={k}
-            type="button"
-            className={`bg-legend-item${visible[k] ? '' : ' off'}`}
-            onClick={() => toggleLayer(k)}
-            aria-pressed={visible[k]}
-            title={visible[k] ? `Hide ${v.label.toLowerCase()}` : `Show ${v.label.toLowerCase()}`}
-          >
-            <i className={`bg-dot${v.ring ? ' ring' : ''}`}
-               style={{ '--c': `rgb(${v.rgb.r},${v.rgb.g},${v.rgb.b})` }} />
-            {v.label}
-          </button>
-        ))}
+      {/* Genres — top left */}
+      {genres.length > 0 && (
+        <div className="bg-legend">
+          <span className="bg-legend-section">Genres</span>
+          {genres.map(g => {
+            const { r, b: bl, g: gr } = genreRgb(g)
+            return (
+              <button
+                key={g}
+                type="button"
+                className={`bg-legend-item${isGenreVisible(g) ? '' : ' off'}`}
+                onClick={() => toggleLayer(g)}
+                aria-pressed={isGenreVisible(g)}
+                title={isGenreVisible(g) ? `Hide ${g}` : `Show ${g}`}
+              >
+                <i className="bg-dot" style={{ '--c': `rgb(${r},${gr},${bl})` }} />
+                {g}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Overlays — top right */}
+      <div className="bg-legend bg-legend-right">
+        <span className="bg-legend-section">Overlays</span>
+        {Object.entries(LAYERS)
+          .filter(([k]) => k !== 'corpus' || hasCorpus)
+          .map(([k, v]) => (
+            <button
+              key={k}
+              type="button"
+              className={`bg-legend-item${visible[k] ? '' : ' off'}`}
+              onClick={() => toggleLayer(k)}
+              aria-pressed={visible[k]}
+              title={visible[k] ? `Hide ${v.label.toLowerCase()}` : `Show ${v.label.toLowerCase()}`}
+            >
+              <i className={`bg-dot${v.ring ? ' ring' : ''}${v.diamond ? ' diamond' : ''}`}
+                 style={{ '--c': `rgb(${v.rgb.r},${v.rgb.g},${v.rgb.b})`, opacity: v.faded ? 0.45 : 1 }} />
+              {v.label}
+            </button>
+          ))}
       </div>
 
       <div className="bg-controls">
@@ -537,20 +645,26 @@ function StarMap({ data, canvasOutRef }) {
         const flipBelow = hover.sy < 96
         const left = W ? Math.max(124, Math.min(W - 124, hover.sx)) : hover.sx
         return (
-        <div
-          className={`bg-tooltip${flipBelow ? ' below' : ''}`}
-          style={{ left, top: hover.sy }}
-        >
-          <strong>{hover.point.title}</strong>
-          <span>{hover.point.author}</span>
-          {hover.point.layer === 'read' && hover.point.rating > 0 && (
-            <span className="bg-tt-sub">{'★'.repeat(hover.point.rating)}</span>
-          )}
-          {hover.point.layer === 'want' && <span className="bg-tt-sub">want to read</span>}
-          {(hover.point.layer === 'suggestions') && (
-            <span className="bg-tt-sub">match {hover.point.score?.toFixed(2)}</span>
-          )}
-        </div>
+          <div
+            className={`bg-tooltip${flipBelow ? ' below' : ''}`}
+            style={{ left, top: hover.sy }}
+          >
+            <strong>{hover.point.title}</strong>
+            <span>{hover.point.author}</span>
+            {hover.point.genre && (
+              <span className="bg-tt-genre" style={{ '--gc': `rgb(${genreRgb(hover.point.genre).r},${genreRgb(hover.point.genre).g},${genreRgb(hover.point.genre).b})` }}>
+                {hover.point.genre}
+              </span>
+            )}
+            {hover.point.layer === 'read' && hover.point.rating > 0 && (
+              <span className="bg-tt-sub">{'★'.repeat(hover.point.rating)}</span>
+            )}
+            {hover.point.layer === 'want' && <span className="bg-tt-sub">want to read</span>}
+            {hover.point.layer === 'suggestions' && (
+              <span className="bg-tt-sub">match {hover.point.score?.toFixed(2)}</span>
+            )}
+            {hover.point.layer === 'corpus' && <span className="bg-tt-sub">reference map</span>}
+          </div>
         )
       })()}
     </div>

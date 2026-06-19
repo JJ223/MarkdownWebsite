@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import './BookGraphDropzone.css'
 
 export default function Dropzone({ onFile, disabled }) {
   const inputRef = useRef(null)

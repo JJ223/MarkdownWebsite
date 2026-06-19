@@ -1,3 +1,5 @@
+import './BookGraphLoader.css'
+
 export default function Loader({ step, pct }) {
   return (
     <div className="bg-loader">

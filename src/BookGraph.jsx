@@ -1,18 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { USE_MOCK, STEPS } from './bookGraph/bookGraphConfig.js'
-import { plotBooks } from './bookGraph/bookGraphApi.js'
+import { plotBooks, fetchCorpus } from './bookGraph/bookGraphApi.js'
 import StarMap from './bookGraph/BookGraphStarMap.jsx'
+import DetailPanel from './bookGraph/BookGraphDetail.jsx'
 import RecList from './bookGraph/BookGraphRecList.jsx'
 import Dropzone from './bookGraph/BookGraphDropzone.jsx'
 import Loader from './bookGraph/BookGraphLoader.jsx'
 import ShareControls from './bookGraph/BookGraphShare.jsx'
 import './BookGraph.css'
 
+const CORPUS_THRESHOLD = 1000 // fetch reference map for smaller libraries
+
 export default function BookGraph() {
   const navigate = useNavigate()
   const [phase, setPhase] = useState('idle')      // idle | loading | done | error
   const [data, setData] = useState(null)
+  const [corpus, setCorpus] = useState(null)
+  const [selected, setSelected] = useState(null)
   const [error, setError] = useState('')
   const [step, setStep] = useState(STEPS[0])
   const [pct, setPct] = useState(0)
@@ -64,6 +69,13 @@ export default function BookGraph() {
         clearInterval(timer); clearTimeout(guard)
         setStep('Done'); setPct(100)
         setData(d); setPhase('done')
+        // Fetch reference corpus for small libraries so the user can see the
+        // broader map as a faded backdrop (toggled on by default in StarMap)
+        if ((d.meta?.read_count ?? Infinity) < CORPUS_THRESHOLD) {
+          fetchCorpus()
+            .then(pts => { if (pts?.length) setCorpus(pts) })
+            .catch(() => {})
+        }
       })
       .catch(e => {
         clearInterval(timer); clearTimeout(guard)
@@ -79,7 +91,7 @@ export default function BookGraph() {
 
   const reset = () => {
     abortRef.current?.abort()
-    setPhase('idle'); setData(null); setError('')
+    setPhase('idle'); setData(null); setCorpus(null); setSelected(null); setError('')
   }
 
   const meta = data?.meta
@@ -144,8 +156,20 @@ export default function BookGraph() {
           )}
 
           <div className="bg-stage" ref={stageRef}>
-            <StarMap data={data} canvasOutRef={liveCanvasRef} />
+            <StarMap data={data} corpus={corpus} canvasOutRef={liveCanvasRef}
+                     onSelect={setSelected} selectedKey={selected?.key} />
           </div>
+          {corpus && corpus.length > 0 && (
+            <p className="bg-corpus-note">
+              The faded background stars are a reference map of the wider literary world.
+              They show where books beyond your library sit in taste-space, so you can
+              see which corners of the map you've explored and which lie just beyond your horizon.
+              Toggle <em>Reference map</em> in the legend to show or hide them.
+            </p>
+          )}
+          {selected && (
+            <DetailPanel point={selected} onClose={() => setSelected(null)} />
+          )}
 
           <div className="bg-recs">
             <RecList title="Discover new authors"

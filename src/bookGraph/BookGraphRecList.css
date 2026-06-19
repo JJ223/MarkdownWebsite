@@ -1,0 +1,54 @@
+/* ── Recommendation lists ────────────────────────────────────────────────── */
+.bg-reclist h4 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-h);
+  margin: 0 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--sidebar-border);
+}
+.bg-reclist h4::before {
+  content: '';
+  display: inline-block;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 8px var(--c);
+  margin-right: 9px;
+  vertical-align: middle;
+}
+.bg-reclist ol { list-style: none; margin: 0; padding: 0; counter-reset: rec; }
+.bg-reclist li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 12px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.bg-reclist li:hover { background: var(--code-bg); border-color: var(--table-border); }
+.bg-rec-rank {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(83, 58, 122, 0.4);
+  border: 1px solid rgba(107, 74, 144, 0.5);
+  color: #c4aee8;
+  font-size: 0.72rem;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 2px;
+}
+.bg-rec-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; flex: 1; }
+.bg-rec-body b { color: var(--text-h); font-size: 0.9rem; font-weight: 600; }
+.bg-rec-author { color: var(--text); font-size: 0.8rem; }
+.bg-rec-body small { color: var(--muted); font-size: 0.74rem; }
+.bg-rec-body small em { color: var(--link); font-style: italic; }
+.bg-rec-score {
+  flex-shrink: 0;
+  color: #9be8b0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
