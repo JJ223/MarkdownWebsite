@@ -13,7 +13,8 @@
     "slug": "projects",
     "title": "Projects",
     "children": [
-      { "slug": "book-plot", "title": "Book Plot" }
+      { "slug": "book-plot",      "title": "Book Plot"      },
+      { "slug": "book-recommend", "title": "Book Recommendations" }
     ]
   },
   {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
-import { LAYERS, genreRgb } from './bookGraphConfig.js'
+import { LAYERS, genreRgb, TERRAIN_BOUNDS } from './bookGraphConfig.js'
+import terrainSrc from '../assets/genre_terrain.png'
 import './BookGraphStarMap.css'
 
 function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
@@ -18,7 +19,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
 
   // Visibility: genres (missing key = true/on) + fixed overlays.
   // Corpus defaults to true when present; want starts hidden.
-  const [visible, setVisible] = useState({ want: false, suggestions: true, corpus: true })
+  const [visible, setVisible] = useState({ want: false, suggestions: true, corpus: false, corpusDots: false })
+  const [overlayHelp, setOverlayHelp] = useState(false)
   const visibleRef = useRef(visible)
   useEffect(() => { visibleRef.current = visible }, [visible])
 
@@ -58,7 +60,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     push(data.want, 'want', () => 6)
     push(data.recommendations?.new_authors, 'suggestions', () => 5, 'sug-new')
     push(data.recommendations?.familiar_authors, 'suggestions', () => 5, 'sug-fam')
-    push(corpus, 'corpus', () => 6, 'corpus')
+    push(corpus, 'corpus', p => 4 + 1.1 * (p.rating || 4), 'corpus')
 
     // Cosmetic jitter: fans stacked same-coord books into individually hoverable clusters
     const userPts = out.filter(p => p.layer !== 'corpus')
@@ -173,6 +175,24 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
   const dataRange = useRef({ x: 1, y: 1 })
   const center = useRef({ x: 0, y: 0 })
   const dragging = useRef(null)
+  const terrainImgRef = useRef(null)
+  const corpusBoundsRef = useRef(null)
+
+  useEffect(() => {
+    const img = new Image()
+    img.src = terrainSrc
+    img.onload = () => { terrainImgRef.current = img }
+  }, [])
+
+  useEffect(() => {
+    if (!corpus?.length) { corpusBoundsRef.current = null; return }
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+    for (const p of corpus) {
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x
+      if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y
+    }
+    corpusBoundsRef.current = { minX, maxX, minY, maxY }
+  }, [corpus])
 
   // Pre-render a soft radial halo sprite per colour (fast drawImage blits).
   // Sprites are keyed by genre name for read/corpus, or layer key for overlays.
@@ -335,25 +355,45 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       }
       ctx.globalAlpha = 1
 
-      // corpus — faded reference points behind everything else
-      if (visibleRef.current.corpus) {
-        const zoom = view.current.z
-        const cSizeFade = Math.max(0.4, Math.min(zoom, 1.8))
+      // corpus — terrain PNG behind everything else.
+      // The PNG is rendered over a padded grid wider than the corpus point extent,
+      // so its placement must use the exact bounds the notebook emitted (TERRAIN_BOUNDS),
+      // not the dots' min/max. corpusBoundsRef is only a fallback if those are missing.
+      const _tb = TERRAIN_BOUNDS ?? corpusBoundsRef.current
+      if (visibleRef.current.corpus && terrainImgRef.current && _tb) {
+        const [x0, y0] = worldToScreen(_tb.minX, _tb.maxY, W, H)
+        const [x1, y1] = worldToScreen(_tb.maxX, _tb.minY, W, H)
+        ctx.globalAlpha = 0.5
+        ctx.drawImage(terrainImgRef.current, x0, y0, x1 - x0, y1 - y0)
+        ctx.globalAlpha = 1
+      }
+
+      // zoom-derived fades (shared by corpus dots and user points below)
+      const zoom = view.current.z
+      const sizeFade = Math.max(0.5, Math.min(zoom, 2.6))
+      const dimFade = 0.3 * Math.pow(Math.min(zoom, 1), 2.5)
+      const coreFade = Math.max(0.7, Math.min(zoom, 1.8))
+
+      // corpus dots — individual reference books, same style as read but faded
+      if (visibleRef.current.corpusDots) {
         for (const p of points) {
           if (p.layer !== 'corpus') continue
-          const [sx, sy] = screenPos(p)
+          const [sx, sy] = worldToScreen(p.x, p.y, W, H)
           screenPosCache.set(p.key, [sx, sy])
-          if (sx < -40 || sx > W + 40 || sy < -40 || sy > H + 40) continue
-          const rgb = genreRgb(p.genre)
+          if (sx < -60 || sx > W + 60 || sy < -60 || sy > H + 60) continue
+          const tw = reduceMotion ? 1 : 0.82 + 0.18 * Math.sin(time * 1.4 + p.phase)
+          const { r, g, b } = genreRgb(p.genre)
           const sprite = sprites[`genre:${p.genre || ''}`] || sprites['genre:']
-          const isHov = hoverRef.current === p.key
-          const isSel = selectedRef.current === p.key
-          const d = p.size * 2.6 * cSizeFade
-          ctx.globalAlpha = isSel ? 0.35 : isHov ? 0.25 : 0.08
+          const d = p.size * 2.6 * sizeFade
+          ctx.globalAlpha = tw * dimFade * 0.15
           ctx.drawImage(sprite, sx - d, sy - d, d * 2, d * 2)
-          const cr = p.size * 0.56 * cSizeFade
-          ctx.globalAlpha = isSel ? 0.55 : isHov ? 0.38 : 0.13
-          ctx.fillStyle = `rgb(${rgb.r},${rgb.g},${rgb.b})`
+          const cr = p.size * 0.56 * coreFade
+          ctx.globalAlpha = Math.min(1, tw + 0.1) * 0.12
+          const cg = ctx.createRadialGradient(sx, sy, 0, sx, sy, cr)
+          cg.addColorStop(0, `rgb(${Math.min(r + 60, 255)},${Math.min(g + 60, 255)},${Math.min(b + 38, 255)})`)
+          cg.addColorStop(0.55, `rgb(${Math.min(r + 20, 255)},${Math.min(g + 20, 255)},${Math.min(b + 10, 255)})`)
+          cg.addColorStop(1, `rgb(${Math.round(r * 0.88)},${Math.round(g * 0.88)},${Math.round(b * 0.88)})`)
+          ctx.fillStyle = cg
           ctx.beginPath(); ctx.arc(sx, sy, cr, 0, Math.PI * 2); ctx.fill()
         }
         ctx.globalAlpha = 1
@@ -382,10 +422,6 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       }
 
       // user data points (read, want, suggestions)
-      const zoom = view.current.z
-      const sizeFade = Math.max(0.5, Math.min(zoom, 2.6))
-      const dimFade = 0.3 * Math.pow(Math.min(zoom, 1), 2.5)
-      const coreFade = Math.max(0.7, Math.min(zoom, 1.8))
       for (const p of points) {
         if (p.layer === 'corpus') continue
         if (p.layer === 'want' && !visibleRef.current.want) continue
@@ -427,10 +463,10 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
             ? '_white'
             : p.layer
         const sprite = sprites[spriteKey] || sprites['genre:']
-        const d = (isRec ? 6.4 : p.size) * (isRec ? 2.5 : 2.6) * sizeFade
+        const d = (isRec ? 8.0 : p.size) * (isRec ? 2.5 : 2.6) * sizeFade
         ctx.globalAlpha = tw * dimFade
         ctx.drawImage(sprite, sx - d, sy - d, d * 2, d * 2)
-        const cr = (isRec ? 2.6 : p.size * 0.56) * coreFade
+        const cr = (isRec ? 3.6 : p.size * 0.56) * coreFade
         ctx.globalAlpha = Math.min(1, tw + 0.1) * 0.9
         const cg = ctx.createRadialGradient(sx, sy, 0, sx, sy, cr)
         cg.addColorStop(0, `rgb(${Math.min(r + 60, 255)},${Math.min(g + 60, 255)},${Math.min(b + 38, 255)})`)
@@ -455,7 +491,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       // hover ring — O(1) lookup
       const hovP = hoverRef.current ? keyMap.get(hoverRef.current) : null
       if (hovP &&
-          !(hovP.layer === 'corpus' && !visibleRef.current.corpus) &&
+          !(hovP.layer === 'corpus' && !visibleRef.current.corpusDots) &&
           !(hovP.layer === 'want' && !visibleRef.current.want) &&
           !(hovP.layer === 'suggestions' && !visibleRef.current.suggestions) &&
           !(hovP.layer === 'read' && visibleRef.current[hovP.genre] === false)) {
@@ -474,7 +510,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       // selection ring — O(1) lookup
       const selP = selectedRef.current ? keyMap.get(selectedRef.current) : null
       if (selP &&
-          !(selP.layer === 'corpus' && !visibleRef.current.corpus) &&
+          !(selP.layer === 'corpus' && !visibleRef.current.corpusDots) &&
           !(selP.layer === 'want' && !visibleRef.current.want) &&
           !(selP.layer === 'suggestions' && !visibleRef.current.suggestions) &&
           !(selP.layer === 'read' && visibleRef.current[selP.genre] === false)) {
@@ -506,7 +542,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     const pickPoint = (mx, my) => {
       let best = null, bestD = Infinity
       for (const p of points) {
-        if (p.layer === 'corpus' && !visibleRef.current.corpus) continue
+        if (p.layer === 'corpus' && !visibleRef.current.corpusDots) continue
         if (p.layer === 'want' && !visibleRef.current.want) continue
         if (p.layer === 'suggestions' && !visibleRef.current.suggestions) continue
         if (p.layer === 'read' && visibleRef.current[p.genre] === false) continue
@@ -521,7 +557,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     }
 
     const onMove = (e) => {
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       if (dragging.current) {
         const dx = mx - dragging.current.x, dy = my - dragging.current.y
         if (Math.hypot(dx, dy) > 4) dragMoved.current = true
@@ -540,14 +577,16 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       }
     }
     const onDown = (e) => {
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       dragMoved.current = false
       dragging.current = { x: mx, y: my }
       canvas.style.cursor = 'grabbing'
     }
     const onClick = (e) => {
       if (dragMoved.current) return
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       const found = pickPoint(mx, my)
       if (found && onSelect) onSelect(found.p)
     }
@@ -555,7 +594,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     const onLeave = () => { hoverRef.current = null; setHover(null); dragging.current = null }
     const onWheel = (e) => {
       e.preventDefault()
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       const v = view.current, c = center.current
       const bx = baseScale.current.x * v.z, by = baseScale.current.y * v.z
       const wx = (mx - W / 2 - v.panX) / bx + c.x
@@ -627,21 +667,32 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
 
       {/* Overlays — top right */}
       <div className="bg-legend bg-legend-right">
-        <span className="bg-legend-section">Overlays</span>
+        <div className="bg-legend-section-row">
+          <span className="bg-legend-section">Overlays</span>
+          <button
+            type="button"
+            className={`bg-legend-help${overlayHelp ? ' active' : ''}`}
+            onClick={() => setOverlayHelp(v => !v)}
+            title="What are overlays?"
+            aria-pressed={overlayHelp}
+          >?</button>
+        </div>
         {Object.entries(LAYERS)
-          .filter(([k]) => k !== 'corpus' || hasCorpus)
+          .filter(([k]) => (k !== 'corpus' && k !== 'corpusDots') || hasCorpus)
           .map(([k, v]) => (
             <button
               key={k}
               type="button"
-              className={`bg-legend-item${visible[k] ? '' : ' off'}`}
+              className={`bg-legend-item${visible[k] ? '' : ' off'}${overlayHelp ? ' help-on' : ''}`}
               onClick={() => toggleLayer(k)}
               aria-pressed={visible[k]}
-              title={visible[k] ? `Hide ${v.label.toLowerCase()}` : `Show ${v.label.toLowerCase()}`}
             >
               <i className={`bg-dot${v.ring ? ' ring' : ''}${v.diamond ? ' diamond' : ''}`}
                  style={{ '--c': `rgb(${v.rgb.r},${v.rgb.g},${v.rgb.b})`, opacity: v.faded ? 0.45 : 1 }} />
-              {v.label}
+              <span className="bg-legend-item-text">
+                <span>{v.label}</span>
+                <span className="bg-legend-item-desc">{v.desc}</span>
+              </span>
             </button>
           ))}
       </div>
@@ -674,7 +725,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
             {hover.point.layer === 'suggestions' && (
               <span className="bg-tt-sub">match {hover.point.score?.toFixed(2)}</span>
             )}
-            {hover.point.layer === 'corpus' && <span className="bg-tt-sub">reference map</span>}
+            {hover.point.layer === 'corpus' && <span className="bg-tt-sub">reference book</span>}
           </div>
         )
       })()}
