@@ -2,9 +2,10 @@ export const USE_MOCK = import.meta.env.DEV
 
 // Fixed overlay layers (non-genre)
 export const LAYERS = {
-  want:        { rgb: { r: 155, g: 155, b: 165 }, label: 'Want to read', ring: true  },
-  suggestions: { rgb: { r: 235, g: 230, b: 255 }, label: 'Suggestions',  ring: false, diamond: true },
-  corpus:      { rgb: { r: 110, g: 95,  b: 135 }, label: 'Reference map', ring: false, faded: true  },
+  want:        { rgb: { r: 155, g: 155, b: 165 }, label: 'Want to read',  ring: true,            desc: 'Books saved on your to-read list'                        },
+  suggestions: { rgb: { r: 235, g: 230, b: 255 }, label: 'Suggestions',   ring: false, diamond: true, desc: 'Personalised picks based on your reading history'   },
+  corpus:      { rgb: { r: 110, g: 95,  b: 135 }, label: 'Reference map',   ring: false, faded: true,  desc: 'Genre terrain map of the wider literary world'        },
+  corpusDots:  { rgb: { r: 120, g: 100, b: 150 }, label: 'Reference books',  ring: false, faded: true,  desc: 'Individual books from the wider literary world as dots' },
 }
 
 // Named genre → star colour. Keys must match the `genre` strings the API returns.
@@ -25,6 +26,15 @@ export const GENRE_PALETTE = {
   'Nonfiction':         { r: 145, g: 178, b: 218 },
   'Horror':             { r: 180, g: 60,  b: 90  },
   'Graphic Novel':      { r: 255, g: 145, b: 70  },
+  'Art/Design':         { r: 230, g: 110, b: 85  },
+  'Economics/Business': { r: 55,  g: 165, b: 125 },
+  'Food':               { r: 245, g: 175, b: 45  },
+  'Philosophy':         { r: 85,  g: 65,  b: 185 },
+  'Plays/Drama':        { r: 160, g: 45,  b: 80  },
+  'Poetry':             { r: 195, g: 150, b: 245 },
+  'Politics':           { r: 80,  g: 110, b: 180 },
+  'Religion/Spirituality': { r: 200, g: 160, b: 75 },
+  'Travel':             { r: 90,  g: 200, b: 225 },
 }
 
 // Seeded fallback colours for genres not in GENRE_PALETTE
@@ -42,6 +52,13 @@ export function genreRgb(genre) {
   }
   return _fallbackCache[genre]
 }
+
+// Exact world-space bounds the terrain PNG was rendered over, taken from the notebook
+// that generates genre_terrain.png. This is the PADDED density grid, which is wider than
+// the corpus point extent, so the PNG must be placed with these values — not the dots'
+// min/max. Refresh these (and the PNG) whenever the backend recomputes the projection,
+// or the terrain will land out of place.
+export const TERRAIN_BOUNDS = { minX: -6.4664, maxX: 20.5175, minY: -5.4341, maxY: 19.2843 }
 
 export const STEPS = [
   'Reading your library…',

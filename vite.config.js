@@ -32,6 +32,15 @@ function generateIndexesPlugin() {
 
 export default defineConfig({
   plugins: [react(), generateIndexesPlugin()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://joaojorge.site',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
+  },
   build: {
     rollupOptions: {
       output: {
