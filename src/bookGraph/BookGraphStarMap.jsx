@@ -363,7 +363,7 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       if (visibleRef.current.corpus && terrainImgRef.current && _tb) {
         const [x0, y0] = worldToScreen(_tb.minX, _tb.maxY, W, H)
         const [x1, y1] = worldToScreen(_tb.maxX, _tb.minY, W, H)
-        ctx.globalAlpha = 0.6
+        ctx.globalAlpha = 0.5
         ctx.drawImage(terrainImgRef.current, x0, y0, x1 - x0, y1 - y0)
         ctx.globalAlpha = 1
       }
@@ -557,7 +557,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     }
 
     const onMove = (e) => {
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       if (dragging.current) {
         const dx = mx - dragging.current.x, dy = my - dragging.current.y
         if (Math.hypot(dx, dy) > 4) dragMoved.current = true
@@ -576,14 +577,16 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
       }
     }
     const onDown = (e) => {
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       dragMoved.current = false
       dragging.current = { x: mx, y: my }
       canvas.style.cursor = 'grabbing'
     }
     const onClick = (e) => {
       if (dragMoved.current) return
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       const found = pickPoint(mx, my)
       if (found && onSelect) onSelect(found.p)
     }
@@ -591,7 +594,8 @@ function StarMap({ data, corpus, canvasOutRef, onSelect, selectedKey }) {
     const onLeave = () => { hoverRef.current = null; setHover(null); dragging.current = null }
     const onWheel = (e) => {
       e.preventDefault()
-      const mx = e.clientX - canvasRect.left, my = e.clientY - canvasRect.top
+      const rect = canvas.getBoundingClientRect()
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top
       const v = view.current, c = center.current
       const bx = baseScale.current.x * v.z, by = baseScale.current.y * v.z
       const wx = (mx - W / 2 - v.panX) / bx + c.x
