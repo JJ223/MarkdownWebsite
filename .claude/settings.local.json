@@ -67,7 +67,11 @@
       "Bash(curl -s -o testMap/Mine.json -w \"%{http_code}\" -X POST http://localhost:3000/api/books/plot -F \"file=@testMap/goodreads_library_export.csv\")",
       "Bash(curl *)",
       "Bash(python *)",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "PowerShell(npm run *)",
+      "PowerShell(node \"C:\\\\Users\\\\JoaoJ\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-JoaoJ-Documents-GitHub-MarkdownWebsite\\\\02bf12cb-bc99-4334-90a7-e393734f5eac\\\\scratchpad\\\\compress-new-image.mjs\" 2>&1)",
+      "PowerShell(node scripts/compress-new-image.mjs 2>&1)",
+      "PowerShell(node scripts/generate-indexes.js 2>&1)"
     ]
   }
 }

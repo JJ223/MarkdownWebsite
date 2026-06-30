@@ -1,5 +1,20 @@
 [
   {
+    "slug": "blog/blog-book-plot-3",
+    "title": "From dots to districts: building BookGraph's genre system",
+    "date": "2026-06-30",
+    "description": "How I turned 1,029 uncontrolled Goodreads tags into 22 meaningful genres using position-aware bucket mapping, then rendered the result as a density-driven SVG terrain that shows the actual shape of the literary world.",
+    "tags": [
+      "Machine Learning",
+      "Visualization",
+      "Genre Mapping",
+      "Self-hosted"
+    ],
+    "org": null,
+    "image": "/images/blog-book-plot-3.png",
+    "highlight": false
+  },
+  {
     "slug": "blog/blog-book-plot-2",
     "title": "Book Plot, part two: surviving 4,000-book libraries",
     "date": "2026-06-10",
