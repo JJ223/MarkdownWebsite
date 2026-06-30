@@ -10,7 +10,6 @@ import Loader from './bookGraph/BookGraphLoader.jsx'
 import ShareControls from './bookGraph/BookGraphShare.jsx'
 import './BookGraph.css'
 
-const CORPUS_THRESHOLD = 1000 // fetch reference map for smaller libraries
 
 export default function BookGraph() {
   const navigate = useNavigate()
@@ -69,13 +68,9 @@ export default function BookGraph() {
         clearInterval(timer); clearTimeout(guard)
         setStep('Done'); setPct(100)
         setData(d); setPhase('done')
-        // Fetch reference corpus for small libraries so the user can see the
-        // broader map as a faded backdrop (toggled on by default in StarMap)
-        if ((d.meta?.read_count ?? Infinity) < CORPUS_THRESHOLD) {
-          fetchCorpus()
-            .then(pts => { if (pts?.length) setCorpus(pts) })
-            .catch(() => {})
-        }
+        fetchCorpus()
+          .then(pts => { if (pts?.length) setCorpus(pts) })
+          .catch(() => {})
       })
       .catch(e => {
         clearInterval(timer); clearTimeout(guard)
